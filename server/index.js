@@ -8,6 +8,26 @@ const INDEX_HTML = path.resolve(import.meta.dir, "index.html");
 const clients = new Set();
 const encoder = new TextEncoder();
 
+const canvasJson = {
+  artboard: {
+    id: "artboard1",
+    width: "800px",
+    height: "600px",
+    backgroundColor: "#ffffff",
+    children: [
+      {
+        id: "shape1",
+        top: "50px",
+        left: "50px",
+        width: "100px",
+        height: "100px",
+        border: "1px solid #000",
+        background: "#ff0000",
+      },
+    ],
+  },
+};
+
 serve({
   port: PORT,
   async fetch(req) {
@@ -29,25 +49,24 @@ serve({
     if (url.pathname === "/events" && req.method === "GET") {
       let controllerRef;
       let intervalId;
-      // let counter = 0;
 
       const stream = new ReadableStream({
         start(controller) {
           controllerRef = controller;
           clients.add(controller);
 
-          controller.enqueue(encoder.encode(`: conectado\n\n`));
+          controller.enqueue(encoder.encode(": conectado\n\n"));
+
+          const ssePayload = JSON.stringify({
+            timestamp: new Date().toISOString(),
+            type: "reload",
+            payload: canvasJson,
+          });
+          controller.enqueue(encoder.encode(`data: ${ssePayload}\n\n`));
+
+          // keep the connection
           intervalId = setInterval(() => {
-            // NOTE: to keep the connection
-            controller.enqueue(encoder.encode(`: heartbeat\n\n`));
-            // or send data
-            // counter += 1;
-            // const data = JSON.stringify({
-            //   timestamp: new Date().toISOString(),
-            //   type: "message",
-            //   payload: `Mensaje #${counter}`,
-            // });
-            // controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+            controller.enqueue(encoder.encode(": heartbeat\n\n"));
           }, 2000);
         },
         cancel() {
@@ -75,11 +94,11 @@ serve({
         return new Response("JSON inválido", { status: 400 });
       }
 
-      const ssePayload = JSON.stringify({
+      const ssePayload = {
         timestamp: new Date().toISOString(),
         type: "message",
         payload: body.payload,
-      });
+      };
       const data = encoder.encode(`data: ${ssePayload}\n\n`);
 
       // Send message to all clients
@@ -104,11 +123,11 @@ serve({
         body.style.left = 0;
       }
 
-      const ssePayload = JSON.stringify({
+      const ssePayload = {
         timestamp: new Date().toISOString(),
         type: "element-style",
         payload: { type: body.type, style: body.style },
-      });
+      };
       const data = encoder.encode(`data: ${ssePayload}\n\n`);
 
       // Send message to all clients
