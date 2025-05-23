@@ -190,11 +190,10 @@
         if (data.type === "message") {
           log(`Mensaje recibido: ${data.payload}`);
         }
-        if (data.type === "reload") {
+        if (data.type === "reload" || data.type === "canvas") {
           log("Recargando canvas...");
           log(JSON.stringify(data.payload, null, 2));
           const canvas = data.payload;
-          console.log(canvas);
           const { children, ...artboard } = canvas.artboard;
 
           const artboardEl = document.getElementById("artboard");
