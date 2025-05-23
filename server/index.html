@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi App con SSE & MCP</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 1rem;
+      }
+      #events p {
+        margin: 0.5rem 0;
+      }
+      #status {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>¡Hola desde Bun!</h1>
+    <div id="status">Conectando SSE…</div>
+    <div id="events"></div>
+
+    <script>
+      // Crear fuente de eventos apuntando a /events
+      const evtSource = new EventSource("/events");
+      const statusEl = document.getElementById("status");
+      const eventsEl = document.getElementById("events");
+
+      // Cuando se abre la conexión
+      evtSource.onopen = () => {
+        statusEl.textContent = "SSE conectado.";
+      };
+
+      // Cuando llega un mensaje
+      evtSource.onmessage = (e) => {
+        const p = document.createElement("p");
+        p.textContent = `Recibido: ${e.data}`;
+        eventsEl.appendChild(p);
+      };
+
+      // Manejo de errores / cierre
+      evtSource.onerror = (e) => {
+        statusEl.textContent = "Conexión SSE cerrada o error.";
+        evtSource.close();
+      };
+    </script>
+  </body>
+</html>

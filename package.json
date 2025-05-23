@@ -1,0 +1,22 @@
+{
+  "name": "mcp-git-commit",
+  "module": "index.js",
+  "type": "module",
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "scripts": {
+    "mcp:start": "bun ./mcp-server/index.js",
+    "mcp:dev": "npx -y @modelcontextprotocol/inspector bun run mcp:start",
+    "server": "bun ./server/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.25.23"
+  }
+}
