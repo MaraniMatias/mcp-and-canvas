@@ -2,7 +2,7 @@
 
 A simple examplet to create MCP Server ([modelcontextprotocol.io](https://modelcontextprotocol.io/introduction))
 
-![./test_imge.png](./test_imge.png)
+![screenshot](./screenshot.png)
 
 To install dependencies:
 

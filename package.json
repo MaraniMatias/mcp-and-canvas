@@ -11,12 +11,13 @@
     "typescript": "^5"
   },
   "scripts": {
-    "mcp:start": "bun ./mcp-server/index.js",
-    "mcp:dev": "npx -y @modelcontextprotocol/inspector bun run mcp:start",
+    "mcp:start": "node ./mcp-server/index.js",
+    "mcp:dev": "npx -y @modelcontextprotocol/inspector npm run mcp:start",
     "server": "bun ./server/index.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
+    "node-fetch": "^3.3.2",
     "zod": "^3.25.23"
   }
 }

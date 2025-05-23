@@ -3,6 +3,8 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
+import fetch from "node-fetch";
+
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
 
 const server = new McpServer({
@@ -16,18 +18,25 @@ server.tool("get-canvas", async () => {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
+
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     }
+
     const canvas = await res.json();
+    const payload = JSON.stringify(canvas);
     return {
       content: [
+        {
+          type: "text",
+          text: payload,
+        },
         {
           type: "resource",
           resource: {
             uri: `${SERVER_URL}/canvas`,
             mimeType: "application/json",
-            text: JSON.stringify(canvas),
+            text: payload,
           },
         },
       ],
@@ -52,7 +61,7 @@ server.tool(
     artboard: z
       .object({
         id: z.string().min(1).max(1000),
-        // type: z.enum("div"),
+        type: z.enum("div"),
         width: z.string().optional(),
         height: z.string().optional(),
         background: z.string().optional(),
@@ -60,7 +69,7 @@ server.tool(
           .array(
             z.object({
               id: z.string().min(1).max(1000),
-              // types: z.enum(["div", "span", "p"]),
+              types: z.enum(["div", "span", "p", "img"]),
               top: z.string().optional(),
               left: z.string().optional(),
               border: z.string().optional(),
@@ -76,10 +85,11 @@ server.tool(
   },
   async ({ css, artboard }) => {
     try {
+      const payload = { css, artboard };
       const res = await fetch(`${SERVER_URL}/canvas`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ css, artboard }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);

@@ -225,8 +225,9 @@
             });
           }
 
+          artboardEl.innerHTML = "";
           children.forEach((child) => {
-            const el = document.createElement("div");
+            const el = document.createElement(child.type || "div");
             el.dataset.elementId = child.id;
             Object.entries(child).forEach(([prop, value]) => {
               el.style[prop] = value;
