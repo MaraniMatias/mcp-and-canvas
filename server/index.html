@@ -32,7 +32,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        background: rgb(255, 255, 255);
+        background: #fff;
         padding: 4px;
         border-radius: 4px;
         pointer-events: all;
@@ -57,7 +57,7 @@
         max-width: 800px;
         height: 100px;
         overflow-y: auto;
-        background: #ffffff;
+        background: #fff;
         border: 1px solid #ccc;
         padding: 8px;
         font-size: 12px;
@@ -78,13 +78,14 @@
 
       .canvas-wrapper {
         position: absolute;
+        top: 0;
         left: 0;
         right: 0;
-        top: 0;
         display: flex;
         align-items: center;
         justify-content: center;
         height: calc(100vh - 168px);
+
         div:not(.artboard) {
           position: absolute !important;
         }
@@ -92,7 +93,7 @@
 
       .artboard {
         position: relative;
-        background-color: #ffffff;
+        background-color: #fff;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         transform-origin: center center;
         transform: scale(var(--zoom, 1));
@@ -191,9 +192,16 @@
           log(`Mensaje recibido: ${data.payload}`);
         }
         if (data.type === "reload" || data.type === "canvas") {
-          log("Recargando canvas...");
+          log(`Recargando canvas... (${data.type})`);
           log(JSON.stringify(data.payload, null, 2));
           const canvas = data.payload;
+          const css = canvas.css;
+          if (css) {
+            const style = document.createElement("style");
+            style.textContent = css;
+            document.head.appendChild(style);
+          }
+
           const { children, ...artboard } = canvas.artboard;
 
           const artboardEl = document.getElementById("artboard");
@@ -212,7 +220,7 @@
             });
             artboardEl.appendChild(el);
           });
-          log("Canvas recargado");
+          log(`Canvas recargado (${data.type})`);
         }
       };
 

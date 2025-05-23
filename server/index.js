@@ -1,6 +1,6 @@
-import { serve } from "bun";
 import fs from "bun:fs";
 import path from "bun:path";
+import { serve } from "bun";
 
 const PORT = process.env.PORT || 3000;
 const INDEX_HTML = path.resolve(import.meta.dir, "index.html");
