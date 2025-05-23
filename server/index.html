@@ -1,27 +1,8 @@
-<!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mi App con SSE & MCP</title>
-    <style>
-      body {
-        font-family: sans-serif;
-        padding: 1rem;
-      }
-      #events p {
-        margin: 0.5rem 0;
-      }
-      #status {
-        font-weight: bold;
-      }
-    </style>
-  </head>
-  <body>
+<!--
+<body>
     <h1>¡Hola desde Bun!</h1>
     <div id="status">Conectando SSE…</div>
     <div id="events"></div>
-
     <script>
       // Crear fuente de eventos apuntando a /events
       const evtSource = new EventSource("/events");
@@ -45,6 +26,187 @@
         statusEl.textContent = "Conexión SSE cerrada o error.";
         evtSource.close();
       };
+    </script>
+  </body>
+  -->
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Artboard con fondo cuadriculado estilo diseño</title>
+    <style>
+      /* Reset y layout principal */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        background-color: #e0e0e0;
+        font-family: sans-serif;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Wrapper flotante sobre el artboard */
+      .overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        pointer-events: none;
+        z-index: 1000;
+      }
+
+      /* Controles de zoom centrados */
+      .controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: rgb(255, 255, 255);
+        padding: 4px;
+        border-radius: 4px;
+        pointer-events: all;
+      }
+      .controls button,
+      .controls input[type="range"] {
+        cursor: pointer;
+      }
+
+      /* Área de logs */
+      .log {
+        width: calc(100% - 20px);
+        max-width: 800px;
+        height: 100px;
+        overflow-y: auto;
+        background: #ffffff;
+        border: 1px solid #ccc;
+        padding: 8px;
+        font-size: 12px;
+        color: #333;
+        border-radius: 4px;
+        pointer-events: all;
+      }
+      .log p {
+        margin: 2px 0;
+      }
+
+      /* Wrapper que centra el artboard */
+      .canvas-wrapper {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: calc(100vh - 168px);
+      }
+
+      /* Artboard estilo app de diseño */
+      .artboard {
+        width: 800px;
+        height: 600px;
+        background-color: #ffffff;
+        border: 2px solid #333;
+        position: relative;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transform-origin: center center;
+        transform: scale(var(--zoom, 1));
+        transition: transform 0.2s ease;
+      }
+
+      /* Elemento dentro del artboard */
+      .element {
+        width: 100px;
+        height: 100px;
+        background-color: #4caf50;
+        position: absolute;
+        top: 50px;
+        left: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: bold;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Overlay que contiene controles y log -->
+    <div class="canvas-wrapper">
+      <div class="artboard" id="artboard">
+        <div class="element">Elemento</div>
+      </div>
+    </div>
+    <div class="overlay">
+      <div class="controls">
+        <button id="zoom-out">–</button>
+        <input type="range" id="zoom-range" min="0.5" max="1.5" step="0.1" value="1" />
+        <button id="zoom-in">+</button>
+        <span id="zoom-value">100%</span>
+      </div>
+      <div class="log" id="log"></div>
+    </div>
+    <script>
+      const artboard = document.getElementById("artboard");
+      const wrapper = document.querySelector(".canvas-wrapper");
+      const overlay = document.querySelector(".overlay");
+      const range = document.getElementById("zoom-range");
+      const zoomIn = document.getElementById("zoom-in");
+      const zoomOut = document.getElementById("zoom-out");
+      const zoomValue = document.getElementById("zoom-value");
+      const logEl = document.getElementById("log");
+      const originalWidth = 800;
+      const originalHeight = 600;
+
+      function log(message) {
+        const p = document.createElement("p");
+        const time = new Date().toLocaleTimeString();
+        p.textContent = `${time} – ${message}`;
+        logEl.appendChild(p);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      function setZoom(z) {
+        artboard.style.setProperty("--zoom", z);
+        zoomValue.textContent = Math.round(z * 100) + "%";
+        range.value = z;
+        log(`Zoom ajustado a ${Math.round(z * 100)}%`);
+      }
+
+      // Controles manuales
+      zoomIn.addEventListener("click", () => {
+        const z = Math.min(parseFloat(range.value) + 0.1, parseFloat(range.max));
+        setZoom(z);
+      });
+      zoomOut.addEventListener("click", () => {
+        const z = Math.max(parseFloat(range.value) - 0.1, parseFloat(range.min));
+        setZoom(z);
+      });
+      range.addEventListener("input", () => {
+        setZoom(parseFloat(range.value));
+      });
+
+      // Ajuste de zoom según tamaño de ventana, excluyendo overlay
+      function autoZoom() {
+        const wrapperWidth = wrapper.clientWidth;
+        const overlayHeight = overlay.clientHeight;
+        const availableHeight = window.innerHeight - overlayHeight;
+        const z = Math.min(wrapperWidth / originalWidth, availableHeight / originalHeight);
+        setZoom(z);
+        log(`Auto zoom aplicado: ${Math.round(z * 100)}%`);
+      }
+      window.addEventListener("resize", autoZoom);
+
+      // Inicializar zoom automático
+      autoZoom();
     </script>
   </body>
 </html>
