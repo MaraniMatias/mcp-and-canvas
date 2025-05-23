@@ -191,7 +191,11 @@
       };
 
       evtSource.onmessage = (e) => {
-        log(`Mensaje recibido: ${e.data}`);
+        const data = JSON.parse(e.data);
+        console.log(data);
+        if (data.type === "message") {
+          log(`Mensaje recibido: ${data.payload}`);
+        }
       };
 
       evtSource.onerror = (e) => {

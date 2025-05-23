@@ -1,47 +1,46 @@
-// index.js
 import { serve } from "bun";
+import fs from "bun:fs";
+import path from "bun:path";
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const INDEX_HTML = path.resolve(import.meta.dir, "index.html");
 
 serve({
   port: PORT,
-  async fetch(request) {
-    const url = new URL(request.url);
-
-    if (url.pathname === "/") {
-      // Ruta principal: sirve index.html
-      const htmlPath = new URL("./index.html", import.meta.url);
-      const html = await Bun.file(htmlPath).text();
-      return new Response(html, {
-        status: 200,
-        headers: { "Content-Type": "text/html; charset=utf-8" },
-      });
+  async fetch(req) {
+    const url = new URL(req.url);
+    if (url.pathname === "/" || url.pathname === "/index.html") {
+      try {
+        const html = await fs.promises.readFile(INDEX_HTML, "utf8");
+        return new Response(html, {
+          status: 200,
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+        });
+      } catch (err) {
+        return new Response("Error al cargar el HTML", { status: 500 });
+      }
     }
 
+    // SSE /events
     if (url.pathname === "/events") {
-      let intervalId; // Guardaremos aquí la referencia al intervalo
+      let intervalId;
       let counter = 0;
+      const encoder = new TextEncoder();
 
       const stream = new ReadableStream({
         start(controller) {
-          const encoder = new TextEncoder();
-          // Heartbeat inicial
-          controller.enqueue(encoder.encode(": iniciando conexión\n\n"));
-
-          // Envío de datos cada 2s
+          // heartbeat inicial
+          controller.enqueue(encoder.encode(`: conectado\n\n`));
           intervalId = setInterval(() => {
-            counter++;
-            const data = `Mensaje número ${counter}`;
+            counter += 1;
+            const data = JSON.stringify({
+              timestamp: new Date().toISOString(),
+              type: "message",
+              payload: `Mensaje #${counter}`,
+            });
             controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-
-            // Ejemplo: cerrar tras 10 mensajes
-            if (counter >= 10) {
-              clearInterval(intervalId);
-              controller.close();
-            }
           }, 2000);
         },
-        // Se llama cuando el cliente aborta la conexión
         cancel() {
           clearInterval(intervalId);
         },
@@ -61,4 +60,4 @@ serve({
   },
 });
 
-console.log(`> Servidor corriendo en http://localhost:${PORT}/`);
+console.log(`Server running on http://localhost:${PORT}`);
