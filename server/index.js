@@ -8,12 +8,13 @@ const clients = new Set();
 const encoder = new TextEncoder();
 
 const canvasJson = {
+  // css: "",
   artboard: {
     id: "artboard1",
     type: "div",
     width: "800px",
     height: "600px",
-    backgroundColor: "#ffffff",
+    background: "#ffffff",
     children: [
       {
         type: "div",
