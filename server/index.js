@@ -5,10 +5,16 @@ import path from "bun:path";
 const PORT = process.env.PORT || 3000;
 const INDEX_HTML = path.resolve(import.meta.dir, "index.html");
 
+// Conjunto para guardar los controllers de cada cliente SSE
+const clients = new Set();
+const encoder = new TextEncoder();
+
 serve({
   port: PORT,
   async fetch(req) {
     const url = new URL(req.url);
+
+    // Servir el HTML
     if (url.pathname === "/" || url.pathname === "/index.html") {
       try {
         const html = await fs.promises.readFile(INDEX_HTML, "utf8");
@@ -21,15 +27,17 @@ serve({
       }
     }
 
-    // SSE /events
-    if (url.pathname === "/events") {
+    // SSE: registrar nuevos clientes
+    if (url.pathname === "/events" && req.method === "GET") {
+      let controllerRef;
       let intervalId;
       let counter = 0;
-      const encoder = new TextEncoder();
 
       const stream = new ReadableStream({
         start(controller) {
-          // heartbeat inicial
+          controllerRef = controller;
+          clients.add(controller);
+          // Envío de heartbeat inicial
           controller.enqueue(encoder.encode(`: conectado\n\n`));
           intervalId = setInterval(() => {
             counter += 1;
@@ -43,6 +51,8 @@ serve({
         },
         cancel() {
           clearInterval(intervalId);
+          // Al desconectar el cliente
+          clients.delete(controllerRef);
         },
       });
 
@@ -54,6 +64,31 @@ serve({
           Connection: "keep-alive",
         },
       });
+    }
+
+    // Nuevo endpoint POST para enviar mensajes a los SSE
+    if (url.pathname === "/message" && req.method === "POST") {
+      let body;
+      try {
+        body = await req.json();
+      } catch {
+        return new Response("JSON inválido", { status: 400 });
+      }
+
+      // Construir el evento SSE
+      const ssePayload = JSON.stringify({
+        timestamp: new Date().toISOString(),
+        type: "message",
+        payload: body.payload, // asume { "payload": "tu mensaje" }
+      });
+      const data = encoder.encode(`data: ${ssePayload}\n\n`);
+
+      // Enviar a todos los clientes conectados
+      for (const client of clients) {
+        client.enqueue(data);
+      }
+
+      return new Response("Mensaje enviado", { status: 200 });
     }
 
     return new Response("Not Found", { status: 404 });

@@ -126,6 +126,19 @@
       </div>
       <div class="log" id="log"></div>
     </div>
+
+    <script>
+      const logEl = document.getElementById("log");
+
+      function log(message) {
+        const p = document.createElement("p");
+        const time = new Date().toLocaleTimeString();
+        p.textContent = `${time} – ${message}`;
+        logEl.appendChild(p);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+    </script>
+
     <script>
       const artboard = document.getElementById("artboard");
       const wrapper = document.querySelector(".canvas-wrapper");
@@ -167,18 +180,6 @@
       window.addEventListener("resize", autoZoom);
 
       autoZoom();
-    </script>
-
-    <script>
-      const logEl = document.getElementById("log");
-
-      function log(message) {
-        const p = document.createElement("p");
-        const time = new Date().toLocaleTimeString();
-        p.textContent = `${time} – ${message}`;
-        logEl.appendChild(p);
-        logEl.scrollTop = logEl.scrollHeight;
-      }
     </script>
 
     <script>
