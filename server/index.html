@@ -214,17 +214,6 @@
           });
           log("Canvas recargado");
         }
-        // if (data.type === "element-style") {
-        //   const { type, style } = data.payload;
-        //   log(`Estilo cambiado para elemento ${type}`);
-        //   log(`Nuevo estilo: ${JSON.stringify(style)}`);
-        //   const element = document.querySelector(`[data-element-type="${type}"]`);
-        //   if (element) {
-        //     Object.entries(style).forEach(([prop, value]) => {
-        //       element.style[prop] = value;
-        //     });
-        //   }
-        // }
       };
 
       evtSource.onerror = (e) => {

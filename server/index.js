@@ -132,35 +132,6 @@ serve({
       return new Response("Canvas enviado", { status: 200 });
     }
 
-    // if (url.pathname === "/change-style" && req.method === "POST") {
-    //   let body;
-    //   try {
-    //     body = await req.json();
-    //   } catch {
-    //     return new Response("JSON inválido", { status: 400 });
-    //   }
-
-    //   if (body.type === "artboard") {
-    //     body.style = body.style || {};
-    //     body.style.top = 0;
-    //     body.style.left = 0;
-    //   }
-
-    //   const ssePayload = {
-    //     timestamp: new Date().toISOString(),
-    //     type: "element-style",
-    //     payload: { type: body.type, style: body.style },
-    //   };
-    //   const data = encoder.encode(`data: ${ssePayload}\n\n`);
-
-    //   // Send message to all clients
-    //   for (const client of clients) {
-    //     client.enqueue(data);
-    //   }
-
-    //   return new Response("Style changed", { status: 200 });
-    // }
-
     return new Response("Not Found", { status: 404 });
   },
 });
