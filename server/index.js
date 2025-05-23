@@ -3,7 +3,6 @@ import path from "bun:path";
 import { serve } from "bun";
 
 const PORT = process.env.PORT || 3000;
-const INDEX_HTML = path.resolve(import.meta.dir, "index.html");
 
 const clients = new Set();
 const encoder = new TextEncoder();
@@ -39,7 +38,8 @@ serve({
 
     if (url.pathname === "/" || url.pathname === "/index.html") {
       try {
-        const html = await fs.promises.readFile(INDEX_HTML, "utf8");
+        const htmlPath = path.resolve(import.meta.dir, "index.html");
+        const html = await fs.promises.readFile(htmlPath, "utf8");
         return new Response(html, {
           status: 200,
           headers: { "Content-Type": "text/html; charset=utf-8" },
