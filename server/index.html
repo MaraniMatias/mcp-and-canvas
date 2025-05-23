@@ -15,6 +15,8 @@
         font-family: sans-serif;
         position: relative;
         overflow: hidden;
+        transition: all 0.3s ease-in-out;
+        --height-overlay: 300px;
       }
 
       .overlay {
@@ -26,6 +28,7 @@
         flex-direction: column;
         pointer-events: none;
         z-index: 1000;
+        height: var(--height-overlay);
       }
 
       .controls {
@@ -34,8 +37,8 @@
         gap: 8px;
         background: #fff;
         padding: 4px;
-        border-radius: 4px;
         pointer-events: all;
+        border: 1px solid #ccc;
         button,
         input[type="range"] {
           cursor: pointer;
@@ -53,20 +56,17 @@
       }
 
       .log {
-        width: calc(100% - 20px);
-        max-width: 800px;
-        height: 100px;
+        width: 100%;
+        height: 100%;
         overflow-y: auto;
         background: #fff;
-        border: 1px solid #ccc;
-        padding: 8px;
         font-size: 12px;
         color: #333;
-        border-radius: 4px;
         pointer-events: all;
         pre,
         p {
-          margin: 2px 0;
+          margin: 0;
+          padding: 4px;
           &:nth-child(even) {
             background: #ddd;
           }
@@ -84,7 +84,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        height: calc(100vh - 168px);
+        height: calc(100vh - var(--height-overlay));
 
         div:not(.artboard) {
           position: absolute !important;
@@ -148,7 +148,7 @@
         artboard.style.setProperty("--zoom", z);
         zoomValue.textContent = Math.round(z * 100) + "%";
         range.value = z;
-        log(`Zoom ajustado a ${Math.round(z * 100)}%`);
+        log(`Zoom applied ${Math.round(z * 100)}%`);
       }
 
       zoomIn.addEventListener("click", () => {
@@ -167,13 +167,26 @@
         const wrapperWidth = wrapper.clientWidth;
         const overlayHeight = overlay.clientHeight;
         const availableHeight = window.innerHeight - overlayHeight;
-        const z = Math.min(wrapperWidth / originalWidth, availableHeight / originalHeight);
-        setZoom(z);
-        log(`Auto zoom aplicado: ${Math.round(z * 100)}%`);
+
+        const widthRatio = wrapperWidth / originalWidth;
+        const heightRatio = availableHeight / originalHeight;
+
+        const z = Math.min(widthRatio, heightRatio);
+
+        artboard.style.setProperty("--zoom", z);
+
+        artboard.style.width = `${originalWidth * z}px`;
+        artboard.style.height = `${originalHeight * z}px`;
+
+        zoomValue.textContent = Math.round(z * 100) + "%";
+        range.value = z;
+
+        log(`Auto zoom applied: ${Math.round(z * 100)}%`);
       }
       window.addEventListener("resize", autoZoom);
-
-      autoZoom();
+      document.addEventListener("DOMContentLoaded", () => {
+        autoZoom();
+      });
     </script>
 
     <script>
@@ -221,6 +234,8 @@
             artboardEl.appendChild(el);
           });
           log(`Canvas recargado (${data.type})`);
+
+          autoZoom();
         }
       };
 

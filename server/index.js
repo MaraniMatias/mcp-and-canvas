@@ -11,11 +11,13 @@ const encoder = new TextEncoder();
 const canvasJson = {
   artboard: {
     id: "artboard1",
+    type: "div",
     width: "800px",
     height: "600px",
     backgroundColor: "#ffffff",
     children: [
       {
+        type: "div",
         id: "shape1",
         top: "50px",
         left: "50px",
@@ -32,6 +34,8 @@ serve({
   port: PORT,
   async fetch(req) {
     const url = new URL(req.url);
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] Incoming request: ${req.method} ${url.pathname}`);
 
     if (url.pathname === "/" || url.pathname === "/index.html") {
       try {
@@ -54,6 +58,7 @@ serve({
         start(controller) {
           controllerRef = controller;
           clients.add(controller);
+          console.log(`[${timestamp}] Client added. Total clients: ${clients.size}`);
 
           controller.enqueue(encoder.encode(": conectado\n\n"));
 
@@ -72,6 +77,7 @@ serve({
         cancel() {
           clearInterval(intervalId);
           clients.delete(controllerRef);
+          console.log(`[${new Date().toISOString()}] Client disconnected. Total clients: ${clients.size}`);
         },
       });
 
@@ -109,6 +115,13 @@ serve({
       return new Response("Mensaje enviado", { status: 200 });
     }
 
+    if (url.pathname === "/canvas" && req.method === "GET") {
+      return new Response(JSON.stringify(canvasJson), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     if (url.pathname === "/canvas" && req.method === "POST") {
       let body;
       try {
@@ -117,11 +130,11 @@ serve({
         return new Response("JSON inválido", { status: 400 });
       }
 
-      const ssePayload = {
+      const ssePayload = JSON.stringify({
         timestamp: new Date().toISOString(),
         type: "canvas",
-        payload: body.payload,
-      };
+        payload: body,
+      });
       const data = encoder.encode(`data: ${ssePayload}\n\n`);
 
       // Send message to all clients
@@ -129,7 +142,10 @@ serve({
         client.enqueue(data);
       }
 
-      return new Response("Canvas enviado", { status: 200 });
+      return new Response(JSON.stringify(canvasJson), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     return new Response("Not Found", { status: 404 });
