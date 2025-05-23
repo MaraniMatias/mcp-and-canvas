@@ -1,19 +1,10 @@
-<!--
-<body>
-    <h1>¡Hola desde Bun!</h1>
-    <div id="status">Conectando SSE…</div>
-    <div id="events"></div>
-  </body>
-  -->
-
 <!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Artboard con fondo cuadriculado estilo diseño</title>
+    <title>Ollama && MCP Server && Studio</title>
     <style>
-      /* Reset y layout principal */
       html,
       body {
         margin: 0;
@@ -26,7 +17,6 @@
         overflow: hidden;
       }
 
-      /* Wrapper flotante sobre el artboard */
       .overlay {
         position: absolute;
         bottom: 0;
@@ -38,7 +28,6 @@
         z-index: 1000;
       }
 
-      /* Controles de zoom centrados */
       .controls {
         display: flex;
         align-items: center;
@@ -47,23 +36,22 @@
         padding: 4px;
         border-radius: 4px;
         pointer-events: all;
-      }
-      .controls button,
-      .controls input[type="range"] {
-        cursor: pointer;
-      }
-      .controls p {
-        margin: 0;
-        flex: 1;
-      }
-      .controls .zoom-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
+        button,
+        input[type="range"] {
+          cursor: pointer;
+        }
+        p {
+          margin: 0;
+          flex: 1;
+        }
+        .zoom-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 8px;
+        }
       }
 
-      /* Área de logs */
       .log {
         width: calc(100% - 20px);
         max-width: 800px;
@@ -76,12 +64,11 @@
         color: #333;
         border-radius: 4px;
         pointer-events: all;
-      }
-      .log p {
-        margin: 2px 0;
+        p {
+          margin: 2px 0;
+        }
       }
 
-      /* Wrapper que centra el artboard */
       .canvas-wrapper {
         position: absolute;
         left: 0;
@@ -93,7 +80,6 @@
         height: calc(100vh - 168px);
       }
 
-      /* Artboard estilo app de diseño */
       .artboard {
         width: 800px;
         height: 600px;
@@ -106,7 +92,6 @@
         transition: transform 0.2s ease;
       }
 
-      /* Elemento dentro del artboard */
       .element {
         width: 100px;
         height: 100px;
@@ -124,7 +109,6 @@
     </style>
   </head>
   <body>
-    <!-- Overlay que contiene controles y log -->
     <div class="canvas-wrapper">
       <div class="artboard" id="artboard">
         <div class="element">Elemento</div>
@@ -143,40 +127,6 @@
       <div class="log" id="log"></div>
     </div>
     <script>
-      const logEl = document.getElementById("log");
-
-      function log(message) {
-        const p = document.createElement("p");
-        const time = new Date().toLocaleTimeString();
-        p.textContent = `${time} – ${message}`;
-        logEl.appendChild(p);
-        logEl.scrollTop = logEl.scrollHeight;
-      }
-    </script>
-    <script>
-      // Crear fuente de eventos apuntando a /events
-      const evtSource = new EventSource("/events");
-      const statusEl = document.getElementById("status");
-
-      // Cuando se abre la conexión
-      evtSource.onopen = () => {
-        statusEl.textContent = "SSE conectado.";
-        log(statusEl.textContent);
-      };
-
-      // Cuando llega un mensaje
-      evtSource.onmessage = (e) => {
-        log(`Mensaje recibido: ${e.data}`);
-      };
-
-      // Manejo de errores / cierre
-      evtSource.onerror = (e) => {
-        statusEl.textContent = "Conexión SSE cerrada o error.";
-        log(statusEl.textContent);
-        evtSource.close();
-      };
-    </script>
-    <script>
       const artboard = document.getElementById("artboard");
       const wrapper = document.querySelector(".canvas-wrapper");
       const overlay = document.querySelector(".overlay");
@@ -194,7 +144,6 @@
         log(`Zoom ajustado a ${Math.round(z * 100)}%`);
       }
 
-      // Controles manuales
       zoomIn.addEventListener("click", () => {
         const z = Math.min(parseFloat(range.value) + 0.1, parseFloat(range.max));
         setZoom(z);
@@ -207,7 +156,6 @@
         setZoom(parseFloat(range.value));
       });
 
-      // Ajuste de zoom según tamaño de ventana, excluyendo overlay
       function autoZoom() {
         const wrapperWidth = wrapper.clientWidth;
         const overlayHeight = overlay.clientHeight;
@@ -218,8 +166,39 @@
       }
       window.addEventListener("resize", autoZoom);
 
-      // Inicializar zoom automático
       autoZoom();
+    </script>
+
+    <script>
+      const logEl = document.getElementById("log");
+
+      function log(message) {
+        const p = document.createElement("p");
+        const time = new Date().toLocaleTimeString();
+        p.textContent = `${time} – ${message}`;
+        logEl.appendChild(p);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+    </script>
+
+    <script>
+      const evtSource = new EventSource("/events");
+      const statusEl = document.getElementById("status");
+
+      evtSource.onopen = () => {
+        statusEl.textContent = "SSE conectado.";
+        log(statusEl.textContent);
+      };
+
+      evtSource.onmessage = (e) => {
+        log(`Mensaje recibido: ${e.data}`);
+      };
+
+      evtSource.onerror = (e) => {
+        statusEl.textContent = "Conexión SSE cerrada o error.";
+        log(statusEl.textContent);
+        evtSource.close();
+      };
     </script>
   </body>
 </html>
