@@ -5,7 +5,6 @@ import path from "bun:path";
 const PORT = process.env.PORT || 3000;
 const INDEX_HTML = path.resolve(import.meta.dir, "index.html");
 
-// Conjunto para guardar los controllers de cada cliente SSE
 const clients = new Set();
 const encoder = new TextEncoder();
 
@@ -14,7 +13,6 @@ serve({
   async fetch(req) {
     const url = new URL(req.url);
 
-    // Servir el HTML
     if (url.pathname === "/" || url.pathname === "/index.html") {
       try {
         const html = await fs.promises.readFile(INDEX_HTML, "utf8");
@@ -27,31 +25,33 @@ serve({
       }
     }
 
-    // SSE: registrar nuevos clientes
+    // SSE register new clients
     if (url.pathname === "/events" && req.method === "GET") {
       let controllerRef;
       let intervalId;
-      let counter = 0;
+      // let counter = 0;
 
       const stream = new ReadableStream({
         start(controller) {
           controllerRef = controller;
           clients.add(controller);
-          // Envío de heartbeat inicial
+
           controller.enqueue(encoder.encode(`: conectado\n\n`));
           intervalId = setInterval(() => {
-            counter += 1;
-            const data = JSON.stringify({
-              timestamp: new Date().toISOString(),
-              type: "message",
-              payload: `Mensaje #${counter}`,
-            });
-            controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+            // NOTE: to keep the connection
+            controller.enqueue(encoder.encode(`: heartbeat\n\n`));
+            // or send data
+            // counter += 1;
+            // const data = JSON.stringify({
+            //   timestamp: new Date().toISOString(),
+            //   type: "message",
+            //   payload: `Mensaje #${counter}`,
+            // });
+            // controller.enqueue(encoder.encode(`data: ${data}\n\n`));
           }, 2000);
         },
         cancel() {
           clearInterval(intervalId);
-          // Al desconectar el cliente
           clients.delete(controllerRef);
         },
       });
@@ -66,7 +66,7 @@ serve({
       });
     }
 
-    // Nuevo endpoint POST para enviar mensajes a los SSE
+    // Send message to all clients
     if (url.pathname === "/message" && req.method === "POST") {
       let body;
       try {
@@ -75,15 +75,14 @@ serve({
         return new Response("JSON inválido", { status: 400 });
       }
 
-      // Construir el evento SSE
       const ssePayload = JSON.stringify({
         timestamp: new Date().toISOString(),
         type: "message",
-        payload: body.payload, // asume { "payload": "tu mensaje" }
+        payload: body.payload,
       });
       const data = encoder.encode(`data: ${ssePayload}\n\n`);
 
-      // Enviar a todos los clientes conectados
+      // Send message to all clients
       for (const client of clients) {
         client.enqueue(data);
       }
