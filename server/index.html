@@ -3,30 +3,6 @@
     <h1>¡Hola desde Bun!</h1>
     <div id="status">Conectando SSE…</div>
     <div id="events"></div>
-    <script>
-      // Crear fuente de eventos apuntando a /events
-      const evtSource = new EventSource("/events");
-      const statusEl = document.getElementById("status");
-      const eventsEl = document.getElementById("events");
-
-      // Cuando se abre la conexión
-      evtSource.onopen = () => {
-        statusEl.textContent = "SSE conectado.";
-      };
-
-      // Cuando llega un mensaje
-      evtSource.onmessage = (e) => {
-        const p = document.createElement("p");
-        p.textContent = `Recibido: ${e.data}`;
-        eventsEl.appendChild(p);
-      };
-
-      // Manejo de errores / cierre
-      evtSource.onerror = (e) => {
-        statusEl.textContent = "Conexión SSE cerrada o error.";
-        evtSource.close();
-      };
-    </script>
   </body>
   -->
 
@@ -66,7 +42,6 @@
       .controls {
         display: flex;
         align-items: center;
-        justify-content: center;
         gap: 8px;
         background: rgb(255, 255, 255);
         padding: 4px;
@@ -76,6 +51,16 @@
       .controls button,
       .controls input[type="range"] {
         cursor: pointer;
+      }
+      .controls p {
+        margin: 0;
+        flex: 1;
+      }
+      .controls .zoom-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
       }
 
       /* Área de logs */
@@ -147,24 +132,18 @@
     </div>
     <div class="overlay">
       <div class="controls">
-        <button id="zoom-out">–</button>
-        <input type="range" id="zoom-range" min="0.5" max="1.5" step="0.1" value="1" />
-        <button id="zoom-in">+</button>
-        <span id="zoom-value">100%</span>
+        <p id="status">SSE status</p>
+        <div class="zoom-container">
+          <button id="zoom-out">–</button>
+          <input type="range" id="zoom-range" min="0.5" max="1.5" step="0.1" value="1" />
+          <button id="zoom-in">+</button>
+          <span id="zoom-value">100%</span>
+        </div>
       </div>
       <div class="log" id="log"></div>
     </div>
     <script>
-      const artboard = document.getElementById("artboard");
-      const wrapper = document.querySelector(".canvas-wrapper");
-      const overlay = document.querySelector(".overlay");
-      const range = document.getElementById("zoom-range");
-      const zoomIn = document.getElementById("zoom-in");
-      const zoomOut = document.getElementById("zoom-out");
-      const zoomValue = document.getElementById("zoom-value");
       const logEl = document.getElementById("log");
-      const originalWidth = 800;
-      const originalHeight = 600;
 
       function log(message) {
         const p = document.createElement("p");
@@ -173,6 +152,40 @@
         logEl.appendChild(p);
         logEl.scrollTop = logEl.scrollHeight;
       }
+    </script>
+    <script>
+      // Crear fuente de eventos apuntando a /events
+      const evtSource = new EventSource("/events");
+      const statusEl = document.getElementById("status");
+
+      // Cuando se abre la conexión
+      evtSource.onopen = () => {
+        statusEl.textContent = "SSE conectado.";
+        log(statusEl.textContent);
+      };
+
+      // Cuando llega un mensaje
+      evtSource.onmessage = (e) => {
+        log(`Mensaje recibido: ${e.data}`);
+      };
+
+      // Manejo de errores / cierre
+      evtSource.onerror = (e) => {
+        statusEl.textContent = "Conexión SSE cerrada o error.";
+        log(statusEl.textContent);
+        evtSource.close();
+      };
+    </script>
+    <script>
+      const artboard = document.getElementById("artboard");
+      const wrapper = document.querySelector(".canvas-wrapper");
+      const overlay = document.querySelector(".overlay");
+      const range = document.getElementById("zoom-range");
+      const zoomIn = document.getElementById("zoom-in");
+      const zoomOut = document.getElementById("zoom-out");
+      const zoomValue = document.getElementById("zoom-value");
+      const originalWidth = 800;
+      const originalHeight = 600;
 
       function setZoom(z) {
         artboard.style.setProperty("--zoom", z);
