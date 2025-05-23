@@ -110,8 +110,8 @@
   </head>
   <body>
     <div class="canvas-wrapper">
-      <div class="artboard" id="artboard">
-        <div class="element">Elemento</div>
+      <div class="artboard" id="artboard" data-element-type="artboard">
+        <div class="element" data-element-type="element">Elemento</div>
       </div>
     </div>
     <div class="overlay">
@@ -196,6 +196,17 @@
         console.log(data);
         if (data.type === "message") {
           log(`Mensaje recibido: ${data.payload}`);
+        }
+        if (data.type === "element-style") {
+          const { type, style } = data.payload;
+          log(`Estilo cambiado para elemento ${type}`);
+          log(`Nuevo estilo: ${JSON.stringify(style)}`);
+          const element = document.querySelector(`[data-element-type="${type}"]`);
+          if (element) {
+            Object.entries(style).forEach(([prop, value]) => {
+              element.style[prop] = value;
+            });
+          }
         }
       };
 
