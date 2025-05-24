@@ -87,7 +87,6 @@ serve({
       }
     }
 
-    // SSE register new clients
     if (url.pathname === "/events" && req.method === "GET") {
       let controllerRef;
       let intervalId;
