@@ -87,12 +87,8 @@ serve({
 
           controller.enqueue(encoder.encode(": conectado\n\n"));
 
-          const ssePayload = JSON.stringify({
-            timestamp: new Date().toISOString(),
-            type: "reload",
-            payload: canvasJson,
-          });
-          controller.enqueue(encoder.encode(`data: ${ssePayload}\n\n`));
+          const data = getEncodedData("reload", canvasJson);
+          controller.enqueue(data);
 
           // keep the connection
           intervalId = setInterval(() => {
