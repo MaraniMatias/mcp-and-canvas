@@ -55,9 +55,7 @@ server.tool(
   async ({ css }) => {
     try {
       const body = { css };
-      await fetch.post(UPDATE_CSS_STYLES, body);
-
-      const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
+      const { data: canvas } = await fetch.post(UPDATE_CSS_STYLES, body);
       const payload = JSON.stringify(canvas);
 
       return {
@@ -88,9 +86,7 @@ server.tool(
   async ({ style }) => {
     try {
       const body = { style };
-      await fetch.post(UPDATE_ARTBOARD_STYLES, body);
-
-      const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
+      const { data: canvas } = await fetch.post(UPDATE_ARTBOARD_STYLES, body);
       const payload = JSON.stringify(canvas);
 
       return {
@@ -122,9 +118,7 @@ server.tool(
   async ({ id, style }) => {
     try {
       const body = { style };
-      await fetch.post(UPDATE_ELEMENT_STYLES(id), body);
-
-      const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
+      const { data: canvas } = await fetch.post(UPDATE_ELEMENT_STYLES(id), body);
       const payload = JSON.stringify(canvas);
 
       return {
@@ -162,9 +156,7 @@ server.tool(
   async ({ id, type, style }) => {
     try {
       const body = { id, type, style };
-      await fetch.post(ADD_ELEMENT, body);
-
-      const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
+      const { data: canvas } = await fetch.post(ADD_ELEMENT, body);
       const payload = JSON.stringify(canvas);
 
       return {
@@ -193,9 +185,7 @@ server.tool(
   },
   async ({ id }) => {
     try {
-      await fetch.delete(REMOVE_ELEMENT(id));
-
-      const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
+      const { data: canvas } = await fetch.delete(REMOVE_ELEMENT(id));
       const payload = JSON.stringify(canvas);
 
       return {

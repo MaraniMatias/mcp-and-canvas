@@ -122,7 +122,6 @@ serve({
       });
     }
 
-    // Send message to all clients
     if (url.pathname === "/message" && req.method === "POST") {
       let body;
       try {

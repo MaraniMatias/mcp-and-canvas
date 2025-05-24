@@ -190,100 +190,101 @@
     </script>
 
     <script>
-      const evtSource = new EventSource("/events");
-      const statusEl = document.getElementById("status");
+      document.addEventListener("DOMContentLoaded", () => {
+        const evtSource = new EventSource("/events");
+        const statusEl = document.getElementById("status");
 
-      evtSource.onopen = () => {
-        statusEl.textContent = "SSE conectado.";
-        log(statusEl.textContent);
-      };
+        evtSource.onopen = () => {
+          statusEl.textContent = "SSE conectado.";
+          log(statusEl.textContent);
+        };
 
-      evtSource.onmessage = (e) => {
-        const data = JSON.parse(e.data);
-        if (data.type === "message") {
-          log(`Mensaje recibido: ${data.payload}`);
-        }
+        evtSource.onmessage = (e) => {
+          const data = JSON.parse(e.data);
+          if (data.type === "message") {
+            log(`Mensaje recibido: ${data.payload}`);
+          }
 
-        if (data.type === "reload") {
-          log(`Recargando canvas... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
-          const canvas = data.payload;
-          const css = canvas.css;
-          if (css) {
+          if (data.type === "reload") {
+            log(`Recargando canvas... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            const canvas = data.payload;
+            const css = canvas.css;
+            if (css) {
+              const style = document.createElement("style");
+              style.textContent = css;
+              document.head.appendChild(style);
+            }
+
+            const { children, ...artboard } = canvas.artboard;
+
+            const artboardEl = document.getElementById("artboard");
+            artboardEl.dataset.elementId = artboard.id;
+            if (artboardEl) {
+              Object.entries(artboard).forEach(([prop, value]) => {
+                artboardEl.style[prop] = value;
+              });
+            }
+
+            artboardEl.innerHTML = "";
+            children?.forEach((child) => {
+              const el = document.createElement(child.type || "div");
+              el.dataset.elementId = child.id;
+              Object.entries(child).forEach(([prop, value]) => {
+                el.style[prop] = value;
+              });
+              artboardEl.appendChild(el);
+            });
+            log(`Canvas recargado (${data.type})`);
+
+            autoZoom();
+          }
+
+          if (data.type === "canvas-update-css") {
+            log(`Recargando CSS... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
             const style = document.createElement("style");
-            style.textContent = css;
+            style.textContent = `.canvas-wrapper {
+              ${data.payload}
+            }`;
             document.head.appendChild(style);
           }
 
-          const { children, ...artboard } = canvas.artboard;
-
-          const artboardEl = document.getElementById("artboard");
-          artboardEl.dataset.elementId = artboard.id;
-          if (artboardEl) {
-            Object.entries(artboard).forEach(([prop, value]) => {
-              artboardEl.style[prop] = value;
-            });
+          if (data.type === "canvas-update-artboard-styles") {
+            log(`Recargando estilos del lienzo... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            const styles = data.payload;
+            const artboardEl = document.getElementById("artboard");
+            Object.entries(styles).forEach(([prop, value]) => (artboardEl.style[prop] = value));
           }
 
-          artboardEl.innerHTML = "";
-          children?.forEach((child) => {
-            const el = document.createElement(child.type || "div");
-            el.dataset.elementId = child.id;
-            Object.entries(child).forEach(([prop, value]) => {
-              el.style[prop] = value;
-            });
-            artboardEl.appendChild(el);
-          });
-          log(`Canvas recargado (${data.type})`);
+          if (data.type === "canvas-update-element-styles") {
+            log(`Recargando estilos del elemento... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            const { id, style } = data.payload;
+            const elementEl = document.querySelector(`[data-element-id="${id}"]`);
+            Object.entries(style).forEach(([prop, value]) => (elementEl.style[prop] = value));
+          }
 
-          autoZoom();
-        }
+          if (data.type === "canvas-delete-element") {
+            log(`Eliminando elemento... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            const { id } = data.payload;
+            const elementEl = document.querySelector(`[data-element-id="${id}"]`);
+            elementEl.remove();
+          }
 
-        if (data.type === "canvas-update-css") {
-          log(`Recargando CSS... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
-          const style = document.createElement("style");
-          style.textContent = `.canvas-wrapper {
-              ${data.payload}
-            }`;
-          document.head.appendChild(style);
-        }
+          if (data.type === "canvas-add-element") {
+            log(`Agregando elemento... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            const { id, type, style } = data.payload;
+            const elementEl = document.createElement(type);
+            elementEl.dataset.elementId = id;
+            Object.entries(style).forEach(([prop, value]) => (elementEl.style[prop] = value));
+            document.getElementById("artboard").appendChild(elementEl);
+          }
+        };
 
-        if (data.type === "canvas-update-artboard-styles") {
-          log(`Recargando estilos del lienzo... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
-          const styles = data.payload;
-          const artboardEl = document.getElementById("artboard");
-          Object.entries(styles).forEach(([prop, value]) => (artboardEl.style[prop] = value));
-        }
-
-        if (data.type === "canvas-update-element-styles") {
-          log(`Recargando estilos del elemento... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
-          const { id, style } = data.payload;
-          const elementEl = document.querySelector(`[data-element-id="${id}"]`);
-          Object.entries(style).forEach(([prop, value]) => (elementEl.style[prop] = value));
-        }
-
-        if (data.type === "canvas-delete-element") {
-          log(`Eliminando elemento... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
-          const { id } = data.payload;
-          const elementEl = document.querySelector(`[data-element-id="${id}"]`);
-          elementEl.remove();
-        }
-
-        if (data.type === "canvas-add-element") {
-          log(`Agregando elemento... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
-          const { id, type, style } = data.payload;
-          const elementEl = document.createElement(type);
-          elementEl.dataset.elementId = id;
-          Object.entries(style).forEach(([prop, value]) => (elementEl.style[prop] = value));
-          document.getElementById("artboard").appendChild(elementEl);
-        }
-      };
-
-      evtSource.onerror = (e) => {
-        console.log(e);
-        statusEl.textContent = "Conexión SSE cerrada o error.";
-        log(statusEl.textContent);
-        evtSource.close();
-      };
+        evtSource.onerror = (e) => {
+          statusEl.textContent = "Conexión SSE cerrada o error.";
+          log(statusEl.textContent);
+          evtSource.close();
+        };
+      });
     </script>
   </body>
 </html>
