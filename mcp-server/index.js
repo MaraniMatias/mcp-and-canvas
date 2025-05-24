@@ -31,7 +31,7 @@ server.tool(
           { type: "text", text: payload },
           {
             type: "resource",
-            resource: { uri: url, mimeType: "application/json", text: payload },
+            resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
           },
         ],
       };
@@ -48,19 +48,24 @@ server.tool(
   "update-css-styles",
   "Update the CSS styles of the application web, this removes all previous styles",
   {
-    css: z.string().max(1000).optional().describe("CSS styles to apply on the application web"),
+    css: z.string().max(1000).optional().describe("CSS styles to apply on the application web").default(`* {
+  border: 1px solid red;
+  }`),
   },
   async ({ css }) => {
     try {
-      const body = css;
+      const body = { css };
       await fetch.post(UPDATE_CSS_STYLES, body);
+
+      const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
+      const payload = JSON.stringify(canvas);
 
       return {
         content: [
           { type: "text", text: "Canvas guardado exitosamente" },
           {
             type: "resource",
-            resource: { uri, mimeType: "application/json", text: body },
+            resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
           },
         ],
       };
@@ -77,15 +82,24 @@ server.tool(
   "update-artboard-styles",
   "Update the CSS styles of the artboard, this replaces previous styles",
   {
-    style: z.string().describe("CSS artboard styles to apply").default("{}}"),
+    style: z.string().default("{}").describe("CSS artboard styles to apply as JSON"),
   },
   async ({ style }) => {
     try {
-      const body = style;
+      const body = { style };
       await fetch.post(UPDATE_ARTBOARD_STYLES, body);
 
+      const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
+      const payload = JSON.stringify(canvas);
+
       return {
-        content: [{ type: "text", text: "Canvas guardado exitosamente" }],
+        content: [
+          { type: "text", text: "Canvas guardado exitosamente" },
+          {
+            type: "resource",
+            resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
+          },
+        ],
       };
     } catch (err) {
       return {
@@ -105,7 +119,7 @@ server.tool(
   },
   async ({ id, style }) => {
     try {
-      const body = style;
+      const body = { style };
       await fetch.post(UPDATE_ELEMENT_STYLES(id), body);
 
       return {

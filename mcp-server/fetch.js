@@ -12,7 +12,15 @@ export async function fetch(url, options = {}, timeout = 5000) {
 
   try {
     let body = options.body;
-    if (typeof options.body === "object") {
+    if (
+      !(
+        typeof options.body === "string" ||
+        options.body instanceof Uint8Array ||
+        options.body instanceof ArrayBuffer ||
+        options.body instanceof Blob ||
+        options.body instanceof ReadableStream
+      )
+    ) {
       body = JSON.stringify(options.body);
     }
 

@@ -203,9 +203,9 @@
         if (data.type === "message") {
           log(`Mensaje recibido: ${data.payload}`);
         }
-        if (data.type === "reload" || data.type === "canvas") {
-          log(`Recargando canvas... (${data.type})`);
-          log(JSON.stringify(data.payload, null, 2));
+
+        if (data.type === "reload") {
+          log(`Recargando canvas... (${data.type})\n\n\t${JSON.stringify(data.payload, null, 2)}\n`);
           const canvas = data.payload;
           const css = canvas.css;
           if (css) {
@@ -236,6 +236,25 @@
           log(`Canvas recargado (${data.type})`);
 
           autoZoom();
+        }
+
+        if (data.type === "canvas-update-css") {
+          log(`Recargando CSS... (${data.type})\n\n\t${JSON.stringify(data.payload, null, 2)}\n`);
+          const style = document.createElement("style");
+          style.textContent = `.canvas-wrapper {
+              ${data.payload}
+            }`;
+          document.head.appendChild(style);
+        }
+
+        if (data.type === "canvas-update-artboard-styles") {
+          log(`Recargando estilos del lienzo... (${data.type})\n\n\t${JSON.stringify(data.payload, null, 2)}\n`);
+          const styles = JSON.parse(data.payload);
+          console.log(styles);
+          const artboardEl = document.getElementById("artboard");
+          Object.entries(styles).forEach(([prop, value]) => {
+            artboardEl.style[prop] = value;
+          });
         }
       };
 

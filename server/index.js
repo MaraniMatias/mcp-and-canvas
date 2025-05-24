@@ -39,14 +39,14 @@ const canvasJson = {
 function sendResp(payload, status = 200, headers = {}) {
   let body = payload;
   if (
-    typeof payload === "string" ||
-    payload instanceof Uint8Array ||
-    payload instanceof ArrayBuffer ||
-    payload instanceof Blob ||
-    payload instanceof ReadableStream
+    !(
+      typeof payload === "string" ||
+      payload instanceof Uint8Array ||
+      payload instanceof ArrayBuffer ||
+      payload instanceof Blob ||
+      payload instanceof ReadableStream
+    )
   ) {
-    body = payload;
-  } else {
     body = JSON.stringify(payload);
   }
 
@@ -158,12 +158,12 @@ serve({
         return sendResp("JSON inválido", 400);
       }
 
-      const data = getEncodedData("canvas-update-css", body);
+      const data = getEncodedData("canvas-update-css", body.css);
       for (const client of clients) {
         client.enqueue(data);
       }
 
-      canvasJson.css = body;
+      canvasJson.css = body.css;
       return sendResp(canvasJson);
     }
 
@@ -175,14 +175,14 @@ serve({
         return sendResp("JSON inválido", 400);
       }
 
-      const data = getEncodedData("canvas-update-artboard-styles", body);
+      const data = getEncodedData("canvas-update-artboard-styles", body.style);
       for (const client of clients) {
         client.enqueue(data);
       }
 
       canvasJson.artboard = {
         ...canvasJson.artboard,
-        ...body,
+        ...body.style,
         top: 0,
         left: 0,
         position: "relative",
