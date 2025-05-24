@@ -200,7 +200,6 @@
 
       evtSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
         if (data.type === "message") {
           log(`Mensaje recibido: ${data.payload}`);
         }
@@ -241,6 +240,7 @@
       };
 
       evtSource.onerror = (e) => {
+        console.log(e);
         statusEl.textContent = "Conexión SSE cerrada o error.";
         log(statusEl.textContent);
         evtSource.close();

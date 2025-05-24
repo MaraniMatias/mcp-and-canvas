@@ -9,11 +9,9 @@ const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
 const GET_CURRENT_CANVAS = `${SERVER_URL}/canvas`;
 const UPDATE_CSS_STYLES = `${SERVER_URL}/canvas/css`;
 const UPDATE_ARTBOARD_STYLES = `${SERVER_URL}/canvas/artboard/styles`;
-const UPDATE_ELEMENT_STYLES = (elementId) =>
-  `${SERVER_URL}/canvas/element/${elementId}/styles`;
+const UPDATE_ELEMENT_STYLES = (elementId) => `${SERVER_URL}/canvas/element/${elementId}/styles`;
 const ADD_ELEMENT = `${SERVER_URL}/canvas/add-element`;
-const REMOVE_ELEMENT = (elementId) =>
-  `${SERVER_URL}/canvas/element/${elementId}`;
+const REMOVE_ELEMENT = (elementId) => `${SERVER_URL}/canvas/element/${elementId}`;
 
 const server = new McpServer({
   name: "mcp-x-studio",
@@ -50,11 +48,7 @@ server.tool(
   "update-css-styles",
   "Update the CSS styles of the application web, this removes all previous styles",
   {
-    css: z
-      .string()
-      .max(1000)
-      .optional()
-      .describe("CSS styles to apply on the application web"),
+    css: z.string().max(1000).optional().describe("CSS styles to apply on the application web"),
   },
   async ({ css }) => {
     try {

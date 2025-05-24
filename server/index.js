@@ -37,7 +37,20 @@ const canvasJson = {
  * @returns {Response}
  */
 function sendResp(payload, status = 200, headers = {}) {
-  return new Response(JSON.stringify(payload), {
+  let body = payload;
+  if (
+    typeof payload === "string" ||
+    payload instanceof Uint8Array ||
+    payload instanceof ArrayBuffer ||
+    payload instanceof Blob ||
+    payload instanceof ReadableStream
+  ) {
+    body = payload;
+  } else {
+    body = JSON.stringify(payload);
+  }
+
+  return new Response(body, {
     status: status,
     headers: { "Content-Type": "application/json", ...headers },
   });
@@ -68,7 +81,7 @@ serve({
       try {
         const htmlPath = path.resolve(import.meta.dir, "index.html");
         const html = await fs.promises.readFile(htmlPath, "utf8");
-        return sendResp(html);
+        return sendResp(html, 200, { "Content-Type": "text/html; charset=utf-8" });
       } catch (err) {
         return sendResp("Error al cargar el HTML", 500);
       }
@@ -198,7 +211,7 @@ serve({
     }
 
     // if (url.pathname === "/canvas/element/:elementId/styles" && req.method === "POST") {
-    const match = pathname.match(/^\/canvas\/element\/([^/]+)\/styles$/);
+    const match = url.pathname.match(/^\/canvas\/element\/([^/]+)\/styles$/);
     if (match && req.method === "POST") {
       const elementId = match[1];
 
@@ -226,7 +239,7 @@ serve({
       return sendResp(canvasJson);
     }
 
-    const matchDelete = pathname.match(/^\/canvas\/element\/([^/]+)$/);
+    const matchDelete = url.pathname.match(/^\/canvas\/element\/([^/]+)$/);
     if (matchDelete && req.method === "DELETE") {
       const elementId = matchDelete[1];
       let body;
