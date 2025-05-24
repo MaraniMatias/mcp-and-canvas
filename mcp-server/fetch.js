@@ -34,28 +34,28 @@ export async function fetch(url, options = {}, timeout = 5000) {
 }
 
 export default {
-  get: async (url, body, options) => {
+  get: async (url, body, options = {}) => {
     return await fetch(url, {
       method: "GET",
       ...options,
       body,
     });
   },
-  post: async (url, body, options) => {
+  post: async (url, body, options = {}) => {
     return await fetch(url, {
       method: "POST",
       ...options,
       body,
     });
   },
-  put: async (url, body, options) => {
+  put: async (url, body, options = {}) => {
     return await fetch(url, {
       method: "PUT",
       ...options,
       body,
     });
   },
-  delete: async (url, body, options) => {
+  delete: async (url, body, options = {}) => {
     return await fetch(url, {
       method: "DELETE",
       ...options,
