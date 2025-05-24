@@ -62,7 +62,7 @@ server.tool(
 
       return {
         content: [
-          { type: "text", text: "Canvas guardado exitosamente" },
+          { type: "text", text: "Updated CSS styles successfully" },
           {
             type: "resource",
             resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
@@ -95,7 +95,7 @@ server.tool(
 
       return {
         content: [
-          { type: "text", text: "Canvas guardado exitosamente" },
+          { type: "text", text: "Updated artboard styles successfully" },
           {
             type: "resource",
             resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
@@ -129,7 +129,7 @@ server.tool(
 
       return {
         content: [
-          { type: "text", text: "Canvas guardado exitosamente" },
+          { type: "text", text: "Elemento updated successfully" },
           {
             type: "resource",
             resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
@@ -169,7 +169,7 @@ server.tool(
 
       return {
         content: [
-          { type: "text", text: "Canvas guardado exitosamente" },
+          { type: "text", text: "Elemento agregado exitosamente" },
           {
             type: "resource",
             resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
@@ -195,8 +195,17 @@ server.tool(
     try {
       await fetch.delete(REMOVE_ELEMENT(id));
 
+      const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
+      const payload = JSON.stringify(canvas);
+
       return {
-        content: [{ type: "text", text: "Canvas guardado exitosamente" }],
+        content: [
+          { type: "text", text: "Elemento eliminado exitosamente" },
+          {
+            type: "resource",
+            resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
+          },
+        ],
       };
     } catch (err) {
       return {
