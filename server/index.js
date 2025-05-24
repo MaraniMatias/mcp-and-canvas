@@ -33,7 +33,7 @@ const canvasJson = {
 /**
  * @param {any} payload - Payload to send in the response
  * @param {200|400|404|500} status - HTTP status code
- * @param {object} headers - Additional headers to include in the response
+ * @param {
  * @returns {Response}
  */
 function sendResp(payload, status = 200, headers = {}) {
@@ -181,6 +181,26 @@ serve({
       return sendResp(canvasJson);
     }
 
+    if (url.pathname === "/canvas/add-element" && req.method === "POST") {
+      let body;
+      try {
+        body = await req.json();
+      } catch {
+        return sendResp("JSON inválido", 400);
+      }
+
+      const data = getEncodedData("canvas-add-element", body);
+      for (const client of clients) {
+        client.enqueue(data);
+      }
+
+      canvasJson.artboard.children.push({
+        ...body,
+        position: "relative",
+      });
+      return sendResp(canvasJson);
+    }
+
     // if (url.pathname === "/canvas/element/:elementId/styles" && req.method === "POST") {
     const match = pathname.match(/^\/canvas\/element\/([^/]+)\/styles$/);
     if (match && req.method === "POST") {
@@ -193,7 +213,10 @@ serve({
         return sendResp("JSON inválido", 400);
       }
 
-      const data = getEncodedData("canvas-update-artboard-styles", body);
+      const data = getEncodedData("canvas-update-element-styles", {
+        id: elementId,
+        ...body,
+      });
       for (const client of clients) {
         client.enqueue(data);
       }
@@ -203,6 +226,27 @@ serve({
         ...body,
         position: "absolute",
       });
+
+      return sendResp(canvasJson);
+    }
+
+    const matchDelete = pathname.match(/^\/canvas\/element\/([^/]+)$/);
+    if (matchDelete && req.method === "DELETE") {
+      const elementId = matchDelete[1];
+      let body;
+      try {
+        body = await req.json();
+      } catch {
+        return sendResp("JSON inválido", 400);
+      }
+
+      const data = getEncodedData("canvas-add-element", body);
+      for (const client of clients) {
+        client.enqueue(data);
+      }
+
+      const index = canvasJson.artboard.children.findIndex((child) => child.id === elementId);
+      canvasJson.artboard.children.splice(index, 1);
 
       return sendResp(canvasJson);
     }

@@ -6,7 +6,7 @@ import nodeFetch from "node-fetch";
  * @param {number} timeout -
  * @returns {Promise<{data:object,res:nodeFetch.res}>}
  */
-export default async function fetch(url, options = {}, timeout = 5000) {
+export async function fetch(url, options = {}, timeout = 5000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
 
@@ -28,9 +28,38 @@ export default async function fetch(url, options = {}, timeout = 5000) {
     }
     const data = await res.json();
     return { data, res };
-  } catch (err) {
-    throw err;
   } finally {
     clearTimeout(id);
   }
 }
+
+export default {
+  get: async (url, body, options) => {
+    return await fetch(url, {
+      method: "GET",
+      ...options,
+      body,
+    });
+  },
+  post: async (url, body, options) => {
+    return await fetch(url, {
+      method: "POST",
+      ...options,
+      body,
+    });
+  },
+  put: async (url, body, options) => {
+    return await fetch(url, {
+      method: "PUT",
+      ...options,
+      body,
+    });
+  },
+  delete: async (url, body, options) => {
+    return await fetch(url, {
+      method: "DELETE",
+      ...options,
+      body,
+    });
+  },
+};
