@@ -9,9 +9,11 @@ const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
 const GET_CURRENT_CANVAS = `${SERVER_URL}/canvas`;
 const UPDATE_CSS_STYLES = `${SERVER_URL}/canvas/css`;
 const UPDATE_ARTBOARD_STYLES = `${SERVER_URL}/canvas/artboard/styles`;
-const UPDATE_ELEMENT_STYLES = (elementId) => `${SERVER_URL}/canvas/element/${elementId}/styles`;
+const UPDATE_ELEMENT_STYLES = (elementId) =>
+  `${SERVER_URL}/canvas/element/${elementId}/styles`;
 const ADD_ELEMENT = `${SERVER_URL}/canvas/add-element`;
-const REMOVE_ELEMENT = (elementId) => `${SERVER_URL}/canvas/element/${elementId}`;
+const REMOVE_ELEMENT = (elementId) =>
+  `${SERVER_URL}/canvas/element/${elementId}`;
 
 const server = new McpServer({
   name: "mcp-x-studio",
@@ -29,7 +31,10 @@ server.tool(
       return {
         content: [
           { type: "text", text: payload },
-          { type: "resource", resource: { uri: url, mimeType: "application/json", text: payload } },
+          {
+            type: "resource",
+            resource: { uri: url, mimeType: "application/json", text: payload },
+          },
         ],
       };
     } catch (err) {
@@ -45,7 +50,11 @@ server.tool(
   "update-css-styles",
   "Update the CSS styles of the application web, this removes all previous styles",
   {
-    css: z.string().max(1000).optional().describe("CSS styles to apply on the application web"),
+    css: z
+      .string()
+      .max(1000)
+      .optional()
+      .describe("CSS styles to apply on the application web"),
   },
   async ({ css }) => {
     try {
@@ -55,7 +64,10 @@ server.tool(
       return {
         content: [
           { type: "text", text: "Canvas guardado exitosamente" },
-          { type: "resource", resource: { uri, mimeType: "application/json", text: body } },
+          {
+            type: "resource",
+            resource: { uri, mimeType: "application/json", text: body },
+          },
         ],
       };
     } catch (err) {
@@ -78,7 +90,9 @@ server.tool(
       const body = style;
       await fetch.post(UPDATE_ARTBOARD_STYLES, body);
 
-      return { content: [{ type: "text", text: "Canvas guardado exitosamente" }] };
+      return {
+        content: [{ type: "text", text: "Canvas guardado exitosamente" }],
+      };
     } catch (err) {
       return {
         isError: true,
@@ -100,7 +114,9 @@ server.tool(
       const body = style;
       await fetch.post(UPDATE_ELEMENT_STYLES(id), body);
 
-      return { content: [{ type: "text", text: "Canvas guardado exitosamente" }] };
+      return {
+        content: [{ type: "text", text: "Canvas guardado exitosamente" }],
+      };
     } catch (err) {
       return {
         isError: true,
@@ -123,7 +139,9 @@ server.tool(
       const body = { id, type, style };
       await fetch.post(ADD_ELEMENT, body);
 
-      return { content: [{ type: "text", text: "Canvas guardado exitosamente" }] };
+      return {
+        content: [{ type: "text", text: "Canvas guardado exitosamente" }],
+      };
     } catch (err) {
       return {
         isError: true,
@@ -143,7 +161,9 @@ server.tool(
     try {
       await fetch.delete(REMOVE_ELEMENT(id));
 
-      return { content: [{ type: "text", text: "Canvas guardado exitosamente" }] };
+      return {
+        content: [{ type: "text", text: "Canvas guardado exitosamente" }],
+      };
     } catch (err) {
       return {
         isError: true,

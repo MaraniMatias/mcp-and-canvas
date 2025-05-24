@@ -62,7 +62,9 @@ serve({
   async fetch(req) {
     const url = new URL(req.url);
     const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] Incoming request: ${req.method} ${url.pathname}`);
+    console.log(
+      `[${timestamp}] Incoming request: ${req.method} ${url.pathname}`,
+    );
 
     if (url.pathname === "/" || url.pathname === "/index.html") {
       try {
@@ -83,7 +85,9 @@ serve({
         start(controller) {
           controllerRef = controller;
           clients.add(controller);
-          console.log(`[${timestamp}] Client added. Total clients: ${clients.size}`);
+          console.log(
+            `[${timestamp}] Client added. Total clients: ${clients.size}`,
+          );
 
           controller.enqueue(encoder.encode(": conectado\n\n"));
 
@@ -98,7 +102,9 @@ serve({
         cancel() {
           clearInterval(intervalId);
           clients.delete(controllerRef);
-          console.log(`[${new Date().toISOString()}] Client disconnected. Total clients: ${clients.size}`);
+          console.log(
+            `[${new Date().toISOString()}] Client disconnected. Total clients: ${clients.size}`,
+          );
         },
       });
 
@@ -217,7 +223,9 @@ serve({
         client.enqueue(data);
       }
 
-      const element = canvasJson.artboard?.children.find((child) => child.id === elementId);
+      const element = canvasJson.artboard?.children.find(
+        (child) => child.id === elementId,
+      );
       Object.assign(element, {
         ...body,
         position: "absolute",
@@ -241,7 +249,9 @@ serve({
         client.enqueue(data);
       }
 
-      const index = canvasJson.artboard.children.findIndex((child) => child.id === elementId);
+      const index = canvasJson.artboard.children.findIndex(
+        (child) => child.id === elementId,
+      );
       canvasJson.artboard.children.splice(index, 1);
 
       return sendResp(canvasJson);
