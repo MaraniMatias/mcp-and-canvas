@@ -30,6 +30,33 @@ const canvasJson = {
   },
 };
 
+/**
+ * @param {any} payload - Payload to send in the response
+ * @param {200|400|404|500} status - HTTP status code
+ * @param {object} headers - Additional headers to include in the response
+ * @returns {Response}
+ */
+function sendResp(payload, status = 200, headers = {}) {
+  return new Response(JSON.stringify(payload), {
+    status: status,
+    headers: { "Content-Type": "application/json", ...headers },
+  });
+}
+
+/**
+ * @param {string} type - Type of the event
+ * @param {any} payload - Payload to send in the response
+ * @returns {string}
+ */
+function getEncodedData(type, payload) {
+  const encodedPayload = JSON.stringify({
+    timestamp: new Date().toISOString(),
+    type: type,
+    payload: payload,
+  });
+  return encoder.encode(`data: ${encodedPayload}\n\n`);
+}
+
 serve({
   port: PORT,
   async fetch(req) {
@@ -41,12 +68,9 @@ serve({
       try {
         const htmlPath = path.resolve(import.meta.dir, "index.html");
         const html = await fs.promises.readFile(htmlPath, "utf8");
-        return new Response(html, {
-          status: 200,
-          headers: { "Content-Type": "text/html; charset=utf-8" },
-        });
+        return sendResp(html);
       } catch (err) {
-        return new Response("Error al cargar el HTML", { status: 500 });
+        return sendResp("Error al cargar el HTML", 500);
       }
     }
 
@@ -82,13 +106,10 @@ serve({
         },
       });
 
-      return new Response(stream, {
-        status: 200,
-        headers: {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          Connection: "keep-alive",
-        },
+      return sendResp(stream, 200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
       });
     }
 
@@ -113,40 +134,28 @@ serve({
         client.enqueue(data);
       }
 
-      return new Response("Mensaje enviado", { status: 200 });
+      return sendResp("Mensaje enviado");
     }
 
     if (url.pathname === "/canvas" && req.method === "GET") {
-      return new Response(JSON.stringify(canvasJson), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+      return sendResp(canvasJson);
     }
 
-    if (url.pathname === "/canvas" && req.method === "POST") {
+    if (url.pathname === "/canvas/css" && req.method === "POST") {
       let body;
       try {
         body = await req.json();
       } catch {
-        return new Response("JSON inválido", { status: 400 });
+        return sendResp("JSON inválido", 400);
       }
 
-      const ssePayload = JSON.stringify({
-        timestamp: new Date().toISOString(),
-        type: "canvas",
-        payload: body,
-      });
-      const data = encoder.encode(`data: ${ssePayload}\n\n`);
-
-      // Send message to all clients
+      const data = getEncodedData("canvas-update-css", body);
       for (const client of clients) {
         client.enqueue(data);
       }
 
-      return new Response(JSON.stringify(canvasJson), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+      canvasJson.css = body;
+      return sendResp(canvasJson);
     }
 
     return new Response("Not Found", { status: 404 });
