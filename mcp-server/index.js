@@ -2,30 +2,15 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-
-import nodeFetch from "node-fetch";
+import fetch from "./fetch.js";
 
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
 
-async function fetch(url, options = {}, timeout = 5000) {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-  try {
-    const res = await nodeFetch(url, {
-      ...options,
-      signal: controller.signal,
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!res.ok) {
-      throw new Error(`http ${res.status}: ${res.statusText}`);
-    }
-    const data = await res.json();
-    return { data, res };
-  } catch (err) {
-    throw err;
-  } finally {
-    clearTimeout(id);
-  }
+function errorResp(err) {
+  return {
+    isError: true,
+    content: [{ type: "text", text: err?.message || err }],
+  };
 }
 
 const server = new McpServer({
@@ -33,133 +18,131 @@ const server = new McpServer({
   version: "1.0.0",
 });
 
-server.tool("get-current-canvas", async () => {
-  try {
-    const { data: canvas } = await fetch(`${SERVER_URL}/canvas`, {
-      method: "GET",
-    });
-
-    const payload = JSON.stringify(canvas);
-    return {
-      content: [
-        {
-          type: "text",
-          text: payload,
-        },
-        {
-          type: "resource",
-          resource: {
-            uri: `${SERVER_URL}/canvas`,
-            mimeType: "application/json",
-            text: payload,
-          },
-        },
-      ],
-    };
-  } catch (err) {
-    return {
-      isError: true,
-      content: [
-        {
-          type: "text",
-          text: "Error al obtener el canvas",
-        },
-      ],
-    };
-  }
-});
-
 server.tool(
-  "save-canvas",
-  {
-    css: z.string().max(1000).optional(),
-    artboard: z
-      .object({
-        id: z.string().min(1).max(1000),
-        width: z.string().optional(),
-        height: z.string().optional(),
-        background: z.string().optional(),
-        borderRadius: z.string().optional(),
-        children: z
-          .array(
-            z.object({
-              id: z.string().min(1).max(1000),
-              types: z.enum(["div", "span", "p", "img"]).optional().default("div"),
-              top: z.string().optional(),
-              left: z.string().optional(),
-              border: z.string().optional(),
-              width: z.string().optional(),
-              height: z.string().optional(),
-              background: z.string().optional(),
-              borderRadius: z.string().optional(),
-              animation: z.string().optional(),
-            }),
-          )
-          .default([]),
-      })
-      .required(),
-  },
-  async ({ css, artboard }) => {
+  "get-current-canvas",
+  `Read the complete contents of the current canvas, return it as a JSON object with css styles, artboard, and elements.Example: { "css": "", "artboard": { "id": "artboard_1", "type": "div", "width": "800px", "height": "600px", "background": "#ffffff", "children": [ { "type": "div", "id": "shape_1", "top": "50px", "left": "50px", "width": "100px", "height": "100px", "border": "1px solid #000", "borderRadius": "50%", "background": "#ff0000" }, { "type": "div", "id": "shape_2", "top": "50px", "left": "50px", "width": "100px", "height": "100px", "border": "1px solid #000", "borderRadius": "50%", "background": "red" }, { "type": "p", "id": "paragraph_1", "top": "60px", "left": "60px", "width": "100px", "height": "100px", "content": "Hello World" } ] } }`,
+  async () => {
     try {
-      const payload = { css, artboard };
-      const { data: canvas } = await fetch(`${SERVER_URL}/canvas`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
+      const url = `${SERVER_URL}/canvas`;
+      const { data: canvas } = await fetch(url);
 
+      const payload = JSON.stringify(canvas);
       return {
         content: [
-          {
-            type: "text",
-            text: "Canvas guardado exitosamente",
-          },
-          {
-            type: "resource",
-            resource: {
-              uri: `${SERVER_URL}/canvas`,
-              mimeType: "application/json",
-              text: JSON.stringify(canvas),
-            },
-          },
+          { type: "text", text: payload },
+          { type: "resource", resource: { uri: url, mimeType: "application/json", text: payload } },
         ],
       };
     } catch (err) {
-      return {
-        isError: true,
-        content: [
-          {
-            type: "text",
-            text: "Error al guardar el canvas",
-          },
-        ],
-      };
+      return errorResp(err);
     }
   },
 );
 
-// server.prompt("hello", () => ({
-//   messages: [
-//     {
-//       role: "user",
-//       content: {
-//         type: "text",
-//         text: `
-// // Initial LLM Prompt for Canvas Representation
-// // A partir de ahora, siempre que generes o modifiques el canvas, represéntalo como un objeto JSON con la siguiente estructura:
-// // 0. En css puede poner codigo que se agregara en las etiquetas styles
-// // 1. Cada elemento es un objeto con:
-// //    - id: un identificador único de tipo string para distinguirlo dentro del árbol.
-// //    - type: el nombre de la etiqueta HTML que debe renderizarse (por ejemplo, "div", "span", "button", etc.).
-// //    - styles: un objeto cuyas claves son propiedades CSS en camelCase (por ejemplo, backgroundColor, fontSize, margin) y cuyos valores son strings con los valores CSS correspondientes (por ejemplo, "red", "16px", "10px 5px").
-// //    - children (opcional): un array de más objetos con la misma estructura, para anidar elementos.
-// // 2. El elemento artboard es el principal con pocision relative y el resto los hijos tienen position absolute
-// // 3. Asegúrate de validar que cada id sea único dentro del conjunto.
-// // ----------------------------------------
-// `,
-//       },
-//     },
-//   ],
-// }));
+server.tool(
+  "update-css-styles",
+  "Update the CSS styles of the application web, this removes all previous styles",
+  {
+    css: z.string().max(1000).optional().describe("CSS styles to apply on the application web"),
+  },
+  async ({ css }) => {
+    try {
+      const url = `${SERVER_URL}/canvas/css`;
+      const body = css;
+      await fetch(url, { method: "POST", body });
+
+      return {
+        content: [
+          { type: "text", text: "Canvas guardado exitosamente" },
+          { type: "resource", resource: { uri, mimeType: "application/json", text: body } },
+        ],
+      };
+    } catch (err) {
+      return errorResp(err);
+    }
+  },
+);
+
+server.tool(
+  "update-artboard-styles",
+  "Update the CSS styles of the artboard, this replaces previous styles",
+  {
+    style: z.string().describe("CSS artboard styles to apply").default("{}}"),
+  },
+  async ({ style }) => {
+    try {
+      const url = `${SERVER_URL}/canvas/artboard/styles`;
+      const body = style;
+      await fetch(url, { method: "POST", body });
+
+      return { content: [{ type: "text", text: "Canvas guardado exitosamente" }] };
+    } catch (err) {
+      return errorResp(err);
+    }
+  },
+);
+
+server.tool(
+  "update-element-styles",
+  "Update the CSS styles of the element, this replaces previous styles",
+  {
+    id: z.string().describe("Element id").min(3),
+    style: z.string().describe("CSS element styles to apply").default("{}"),
+  },
+  async ({ id, style }) => {
+    try {
+      /// TODO: check if id exite on current canvas
+
+      const url = `${SERVER_URL}/canvas/element/${id}/styles`;
+      const body = style;
+      await fetch(url, { method: "POST", body });
+
+      return { content: [{ type: "text", text: "Canvas guardado exitosamente" }] };
+    } catch (err) {
+      return errorResp(err);
+    }
+  },
+);
+
+server.tool(
+  "add-new-element",
+  "Add a new element to the canvas, if provided parent id, it will be added as child of one element, if not, it will be added as child of the artboard",
+  {
+    id: z.string().describe("Element id").min(3),
+    type: z.enum(["div", "span", "p", "img"]).optional().default("div"),
+    style: z.string().describe("CSS element styles to apply").default("{}"),
+    parentId: z.string().optional().describe("Id of parent element, by default is artboard"),
+  },
+  async ({ id, type, style }) => {
+    try {
+      const url = `${SERVER_URL}/canvas/element`;
+      const body = { id, type, style };
+      await fetch(url, { method: "POST", body });
+
+      return { content: [{ type: "text", text: "Canvas guardado exitosamente" }] };
+    } catch (err) {
+      return errorResp(err);
+    }
+  },
+);
+
+server.tool(
+  "remove-element",
+  "Remove an element from the canvas",
+  {
+    id: z.string().describe("Element id").min(3),
+  },
+  async ({ id }) => {
+    try {
+      const url = `${SERVER_URL}/canvas/element/${id}`;
+      await fetch(url, { method: "DELETE" });
+
+      return { content: [{ type: "text", text: "Canvas guardado exitosamente" }] };
+    } catch (err) {
+      return errorResp(err);
+    }
+  },
+);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
