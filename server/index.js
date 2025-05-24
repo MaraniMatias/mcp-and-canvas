@@ -171,18 +171,20 @@ serve({
       let body;
       try {
         body = await req.json();
+        console.log(body);
       } catch {
         return sendResp("JSON inválido", 400);
       }
+      const style = JSON.parse(body.style);
 
-      const data = getEncodedData("canvas-update-artboard-styles", body.style);
+      const data = getEncodedData("canvas-update-artboard-styles", style);
       for (const client of clients) {
         client.enqueue(data);
       }
 
       canvasJson.artboard = {
         ...canvasJson.artboard,
-        ...body.style,
+        ...style,
         top: 0,
         left: 0,
         position: "relative",
@@ -203,14 +205,10 @@ serve({
         client.enqueue(data);
       }
 
-      canvasJson.artboard.children.push({
-        ...body,
-        position: "relative",
-      });
+      canvasJson.artboard.children.push({ ...body, position: "relative" });
       return sendResp(canvasJson);
     }
 
-    // if (url.pathname === "/canvas/element/:elementId/styles" && req.method === "POST") {
     const match = url.pathname.match(/^\/canvas\/element\/([^/]+)\/styles$/);
     if (match && req.method === "POST") {
       const elementId = match[1];
@@ -221,20 +219,16 @@ serve({
       } catch {
         return sendResp("JSON inválido", 400);
       }
+      const style = JSON.parse(body.style);
 
-      const data = getEncodedData("canvas-update-element-styles", {
-        id: elementId,
-        ...body,
-      });
+      const data = getEncodedData("canvas-update-element-styles", { id: elementId, style });
+
       for (const client of clients) {
         client.enqueue(data);
       }
 
       const element = canvasJson.artboard?.children.find((child) => child.id === elementId);
-      Object.assign(element, {
-        ...body,
-        position: "absolute",
-      });
+      Object.assign(element, { id: elementId, ...style, position: "absolute" });
 
       return sendResp(canvasJson);
     }

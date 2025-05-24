@@ -82,7 +82,8 @@ server.tool(
   "update-artboard-styles",
   "Update the CSS styles of the artboard, this replaces previous styles",
   {
-    style: z.string().default("{}").describe("CSS artboard styles to apply as JSON"),
+    // style: z.object({}).describe("CSS artboard styles to apply as JSON"),
+    style: z.string().describe("CSS artboard styles to apply as JSON string"),
   },
   async ({ style }) => {
     try {
@@ -115,15 +116,25 @@ server.tool(
   "Update the CSS styles of the element, this replaces previous styles",
   {
     id: z.string().describe("Element id, must be unique").min(3),
-    style: z.string().describe("CSS element styles to apply").default("{}"),
+    // style: z.object({}).describe("CSS element styles to apply, must be a JSON").default({}),
+    style: z.string().describe("CSS element styles to apply, must be a JSON string"),
   },
   async ({ id, style }) => {
     try {
       const body = { style };
       await fetch.post(UPDATE_ELEMENT_STYLES(id), body);
 
+      const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
+      const payload = JSON.stringify(canvas);
+
       return {
-        content: [{ type: "text", text: "Canvas guardado exitosamente" }],
+        content: [
+          { type: "text", text: "Canvas guardado exitosamente" },
+          {
+            type: "resource",
+            resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
+          },
+        ],
       };
     } catch (err) {
       return {
@@ -140,15 +151,24 @@ server.tool(
   {
     id: z.string().describe("Element id, must be unique").min(3),
     type: z.enum(["div", "span", "p", "img"]).optional().default("div"),
-    style: z.string().describe("CSS element styles to apply").default("{}"),
+    style: z.object({}).describe("CSS element styles to apply, must be a JSON").default({}),
   },
   async ({ id, type, style }) => {
     try {
       const body = { id, type, style };
       await fetch.post(ADD_ELEMENT, body);
 
+      const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
+      const payload = JSON.stringify(canvas);
+
       return {
-        content: [{ type: "text", text: "Canvas guardado exitosamente" }],
+        content: [
+          { type: "text", text: "Canvas guardado exitosamente" },
+          {
+            type: "resource",
+            resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
+          },
+        ],
       };
     } catch (err) {
       return {
