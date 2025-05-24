@@ -72,39 +72,36 @@ server.tool("get-current-canvas", async () => {
 server.tool(
   "save-canvas",
   {
-    canvas: z
+    css: z.string().max(1000).optional(),
+    artboard: z
       .object({
-        css: z.string().max(1000).optional(),
-        artboard: z
-          .object({
-            id: z.string().min(1).max(1000),
-            width: z.string().optional(),
-            height: z.string().optional(),
-            background: z.string().optional(),
-            borderRadius: z.string().optional(),
-            children: z
-              .array(
-                z.object({
-                  id: z.string().min(1).max(1000),
-                  types: z.enum(["div", "span", "p", "img"]).optional().default("div"),
-                  top: z.string().optional(),
-                  left: z.string().optional(),
-                  border: z.string().optional(),
-                  width: z.string().optional(),
-                  height: z.string().optional(),
-                  background: z.string().optional(),
-                  borderRadius: z.string().optional(),
-                  animation: z.string().optional(),
-                }),
-              )
-              .default([]),
-          })
-          .required(),
+        id: z.string().min(1).max(1000),
+        width: z.string().optional(),
+        height: z.string().optional(),
+        background: z.string().optional(),
+        borderRadius: z.string().optional(),
+        children: z
+          .array(
+            z.object({
+              id: z.string().min(1).max(1000),
+              types: z.enum(["div", "span", "p", "img"]).optional().default("div"),
+              top: z.string().optional(),
+              left: z.string().optional(),
+              border: z.string().optional(),
+              width: z.string().optional(),
+              height: z.string().optional(),
+              background: z.string().optional(),
+              borderRadius: z.string().optional(),
+              animation: z.string().optional(),
+            }),
+          )
+          .default([]),
       })
       .required(),
   },
-  async ({ canvas: payload }) => {
+  async ({ css, artboard }) => {
     try {
+      const payload = { css, artboard };
       const { data: canvas } = await fetch(`${SERVER_URL}/canvas`, {
         method: "POST",
         body: JSON.stringify(payload),
