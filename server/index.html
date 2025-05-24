@@ -141,8 +141,6 @@
       const zoomIn = document.getElementById("zoom-in");
       const zoomOut = document.getElementById("zoom-out");
       const zoomValue = document.getElementById("zoom-value");
-      const originalWidth = 800;
-      const originalHeight = 600;
 
       function setZoom(z) {
         artboard.style.setProperty("--zoom", z);
@@ -164,25 +162,18 @@
       });
 
       function autoZoom() {
-        const wrapperWidth = wrapper.clientWidth;
-        const overlayHeight = overlay.clientHeight;
+        const wrapperWidth = wrapper.clientWidth + 30;
+        const overlayHeight = overlay.clientHeight + 30;
         const availableHeight = window.innerHeight - overlayHeight;
 
-        const widthRatio = wrapperWidth / originalWidth;
-        const heightRatio = availableHeight / originalHeight;
-
+        const widthRatio = wrapperWidth / artboard.clientWidth;
+        const heightRatio = availableHeight / artboard.clientHeight;
         const z = Math.min(widthRatio, heightRatio);
 
-        artboard.style.setProperty("--zoom", z);
-
-        artboard.style.width = `${originalWidth * z}px`;
-        artboard.style.height = `${originalHeight * z}px`;
-
-        zoomValue.textContent = Math.round(z * 100) + "%";
-        range.value = z;
-
         log(`Auto zoom applied: ${Math.round(z * 100)}%`);
+        setZoom(z);
       }
+
       window.addEventListener("resize", autoZoom);
       document.addEventListener("DOMContentLoaded", () => {
         autoZoom();
