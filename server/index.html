@@ -260,6 +260,22 @@
           const elementEl = document.querySelector(`[data-element-id="${id}"]`);
           Object.entries(style).forEach(([prop, value]) => (elementEl.style[prop] = value));
         }
+
+        if (data.type === "canvas-delete-element") {
+          log(`Eliminando elemento... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+          const { id } = data.payload;
+          const elementEl = document.querySelector(`[data-element-id="${id}"]`);
+          elementEl.remove();
+        }
+
+        if (data.type === "canvas-add-element") {
+          log(`Agregando elemento... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+          const { id, type, style } = data.payload;
+          const elementEl = document.createElement(type);
+          elementEl.dataset.elementId = id;
+          Object.entries(style).forEach(([prop, value]) => (elementEl.style[prop] = value));
+          document.getElementById("artboard").appendChild(elementEl);
+        }
       };
 
       evtSource.onerror = (e) => {

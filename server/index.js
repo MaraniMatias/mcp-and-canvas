@@ -169,13 +169,13 @@ serve({
 
     if (url.pathname === "/canvas/artboard/styles" && req.method === "POST") {
       let body;
+      let style;
       try {
         body = await req.json();
-        console.log(body);
+        style = JSON.parse(body.style);
       } catch {
         return sendResp("JSON inválido", 400);
       }
-      const style = JSON.parse(body.style);
 
       const data = getEncodedData("canvas-update-artboard-styles", style);
       for (const client of clients) {
@@ -194,13 +194,15 @@ serve({
 
     if (url.pathname === "/canvas/add-element" && req.method === "POST") {
       let body;
+      let style;
       try {
         body = await req.json();
+        style = JSON.parse(body.style);
       } catch {
         return sendResp("JSON inválido", 400);
       }
 
-      const data = getEncodedData("canvas-add-element", body);
+      const data = getEncodedData("canvas-add-element", { ...body, style });
       for (const client of clients) {
         client.enqueue(data);
       }
@@ -236,14 +238,8 @@ serve({
     const matchDelete = url.pathname.match(/^\/canvas\/element\/([^/]+)$/);
     if (matchDelete && req.method === "DELETE") {
       const elementId = matchDelete[1];
-      let body;
-      try {
-        body = await req.json();
-      } catch {
-        return sendResp("JSON inválido", 400);
-      }
 
-      const data = getEncodedData("canvas-add-element", body);
+      const data = getEncodedData("canvas-delete-element", { id: elementId });
       for (const client of clients) {
         client.enqueue(data);
       }

@@ -151,7 +151,13 @@ server.tool(
   {
     id: z.string().describe("Element id, must be unique").min(3),
     type: z.enum(["div", "span", "p", "img"]).optional().default("div"),
-    style: z.object({}).describe("CSS element styles to apply, must be a JSON").default({}),
+    // style: z.object({}).describe("CSS element styles to apply, must be a JSON").default({}),
+    style: z
+      .string()
+      .describe("CSS element styles to apply, must be a JSON")
+      .default(
+        '{"top": 0, "left": 0, "width": "100px", "height": "100px","border":"1px solid black","background":"white"}',
+      ),
   },
   async ({ id, type, style }) => {
     try {
