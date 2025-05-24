@@ -75,13 +75,17 @@ serve({
   async fetch(req) {
     const url = new URL(req.url);
     const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] Incoming request: ${req.method} ${url.pathname}`);
+    console.log(
+      `[${timestamp}] Incoming request: ${req.method} ${url.pathname}`,
+    );
 
     if (url.pathname === "/" || url.pathname === "/index.html") {
       try {
         const htmlPath = path.resolve(import.meta.dir, "index.html");
         const html = await fs.promises.readFile(htmlPath, "utf8");
-        return sendResp(html, 200, { "Content-Type": "text/html; charset=utf-8" });
+        return sendResp(html, 200, {
+          "Content-Type": "text/html; charset=utf-8",
+        });
       } catch (err) {
         return sendResp("Error al cargar el HTML", 500);
       }
@@ -95,7 +99,9 @@ serve({
         start(controller) {
           controllerRef = controller;
           clients.add(controller);
-          console.log(`[${timestamp}] Client added. Total clients: ${clients.size}`);
+          console.log(
+            `[${timestamp}] Client added. Total clients: ${clients.size}`,
+          );
 
           controller.enqueue(encoder.encode(": conectado\n\n"));
 
@@ -110,7 +116,9 @@ serve({
         cancel() {
           clearInterval(intervalId);
           clients.delete(controllerRef);
-          console.log(`[${new Date().toISOString()}] Client disconnected. Total clients: ${clients.size}`);
+          console.log(
+            `[${new Date().toISOString()}] Client disconnected. Total clients: ${clients.size}`,
+          );
         },
       });
 
@@ -221,13 +229,18 @@ serve({
       }
       const style = JSON.parse(body.style);
 
-      const data = getEncodedData("canvas-update-element-styles", { id: elementId, style });
+      const data = getEncodedData("canvas-update-element-styles", {
+        id: elementId,
+        style,
+      });
 
       for (const client of clients) {
         client.enqueue(data);
       }
 
-      const element = canvasJson.artboard?.children.find((child) => child.id === elementId);
+      const element = canvasJson.artboard?.children.find(
+        (child) => child.id === elementId,
+      );
       Object.assign(element, { id: elementId, ...style, position: "absolute" });
 
       return sendResp(canvasJson);
@@ -242,7 +255,9 @@ serve({
         client.enqueue(data);
       }
 
-      const index = canvasJson.artboard.children.findIndex((child) => child.id === elementId);
+      const index = canvasJson.artboard.children.findIndex(
+        (child) => child.id === elementId,
+      );
       canvasJson.artboard.children.splice(index, 1);
 
       return sendResp(canvasJson);

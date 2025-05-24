@@ -31,7 +31,11 @@ server.tool(
           { type: "text", text: payload },
           {
             type: "resource",
-            resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
+            resource: {
+              uri: "file:///canvas.json",
+              mimeType: "application/json",
+              text: payload,
+            },
           },
         ],
       };
@@ -61,10 +65,14 @@ server.tool(
       return {
         content: [
           { type: "text", text: "Updated CSS styles successfully" },
-          {
-            type: "resource",
-            resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
-          },
+          // {
+          //   type: "resource",
+          //   resource: {
+          //     uri: "file:///canvas.json",
+          //     mimeType: "application/json",
+          //     text: payload,
+          //   },
+          // },
         ],
       };
     } catch (err) {
@@ -92,10 +100,14 @@ server.tool(
       return {
         content: [
           { type: "text", text: "Updated artboard styles successfully" },
-          {
-            type: "resource",
-            resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
-          },
+          // {
+          //   type: "resource",
+          //   resource: {
+          //     uri: "file:///canvas.json",
+          //     mimeType: "application/json",
+          //     text: payload,
+          //   },
+          // },
         ],
       };
     } catch (err) {
@@ -124,10 +136,14 @@ server.tool(
       return {
         content: [
           { type: "text", text: "Elemento updated successfully" },
-          {
-            type: "resource",
-            resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
-          },
+          // {
+          //   type: "resource",
+          //   resource: {
+          //     uri: "file:///canvas.json",
+          //     mimeType: "application/json",
+          //     text: payload,
+          //   },
+          // },
         ],
       };
     } catch (err) {
@@ -162,10 +178,14 @@ server.tool(
       return {
         content: [
           { type: "text", text: "Elemento agregado exitosamente" },
-          {
-            type: "resource",
-            resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
-          },
+          // {
+          //   type: "resource",
+          //   resource: {
+          //     uri: "file:///canvas",
+          //     mimeType: "application/json",
+          //     text: payload,
+          //   },
+          // },
         ],
       };
     } catch (err) {
@@ -191,10 +211,14 @@ server.tool(
       return {
         content: [
           { type: "text", text: "Elemento eliminado exitosamente" },
-          {
-            type: "resource",
-            resource: { uri: "resource://canvas", mimeType: "application/json", text: payload },
-          },
+          // {
+          //   type: "resource",
+          //   resource: {
+          //     uri: "file:///canvas.json",
+          //     mimeType: "application/json",
+          //     text: payload,
+          //   },
+          // },
         ],
       };
     } catch (err) {
@@ -205,6 +229,29 @@ server.tool(
     }
   },
 );
+
+// server.prompt("Agrega un nueve elemento", () => ({
+//   messages: [
+//     {
+//       role: "user",
+//       content: "Agrega un nueve elemento azul de 120x120, con bordes redondeados, en la posición (100, 100)",
+//     },
+//   ],
+// }));
+
+server.resource("canvas.json", "file:///canvas.json", async () => {
+  const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
+
+  return {
+    contents: [
+      {
+        uri: "file:///canvas.json",
+        mimeType: "application/json",
+        text: JSON.stringify(canvas),
+      },
+    ],
+  };
+});
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
