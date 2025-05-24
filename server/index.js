@@ -158,7 +158,56 @@ serve({
       return sendResp(canvasJson);
     }
 
-    return new Response("Not Found", { status: 404 });
+    if (url.pathname === "/canvas/artboard/styles" && req.method === "POST") {
+      let body;
+      try {
+        body = await req.json();
+      } catch {
+        return sendResp("JSON inválido", 400);
+      }
+
+      const data = getEncodedData("canvas-update-artboard-styles", body);
+      for (const client of clients) {
+        client.enqueue(data);
+      }
+
+      canvasJson.artboard = {
+        ...canvasJson.artboard,
+        ...body,
+        top: 0,
+        left: 0,
+        position: "relative",
+      };
+      return sendResp(canvasJson);
+    }
+
+    // if (url.pathname === "/canvas/element/:elementId/styles" && req.method === "POST") {
+    const match = pathname.match(/^\/canvas\/element\/([^/]+)\/styles$/);
+    if (match && req.method === "POST") {
+      const elementId = match[1];
+
+      let body;
+      try {
+        body = await req.json();
+      } catch {
+        return sendResp("JSON inválido", 400);
+      }
+
+      const data = getEncodedData("canvas-update-artboard-styles", body);
+      for (const client of clients) {
+        client.enqueue(data);
+      }
+
+      const element = canvasJson.artboard?.children.find((child) => child.id === elementId);
+      Object.assign(element, {
+        ...body,
+        position: "absolute",
+      });
+
+      return sendResp(canvasJson);
+    }
+
+    return sendResp("Not Found", 404);
   },
 });
 

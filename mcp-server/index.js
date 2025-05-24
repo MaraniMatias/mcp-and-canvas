@@ -91,7 +91,7 @@ server.tool(
   },
   async ({ id, style }) => {
     try {
-      /// TODO: check if id exite on current canvas
+      /// TODO: check if id exit on current canvas
 
       const url = `${SERVER_URL}/canvas/element/${id}/styles`;
       const body = style;
