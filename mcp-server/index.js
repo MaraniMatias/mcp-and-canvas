@@ -33,7 +33,7 @@ const server = new McpServer({
   version: "1.0.0",
 });
 
-server.tool("current-canvas", async () => {
+server.tool("get-current-canvas", async () => {
   try {
     const { data: canvas } = await fetch(`${SERVER_URL}/canvas`, {
       method: "GET",
