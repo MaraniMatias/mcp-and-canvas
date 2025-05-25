@@ -106,7 +106,7 @@
   </head>
   <body>
     <div class="canvas-wrapper">
-      <div class="artboard" id="artboard"></div>
+      <div class="artboard" id="artboard_1"></div>
     </div>
     <div class="overlay">
       <div class="controls">
@@ -134,7 +134,7 @@
     </script>
 
     <script>
-      const artboard = document.getElementById("artboard");
+      const artboard = document.getElementById("artboard_1");
       const wrapper = document.querySelector(".canvas-wrapper");
       const overlay = document.querySelector(".overlay");
       const range = document.getElementById("zoom-range");
@@ -214,7 +214,7 @@
 
             const { children, ...artboard } = canvas.artboard;
 
-            const artboardEl = document.getElementById("artboard");
+            const artboardEl = document.getElementById("artboard_1");
             if (artboardEl) {
               Object.entries(artboard).forEach(([prop, value]) => (artboardEl.style[prop] = value));
             }
@@ -250,7 +250,7 @@
           if (data.type === "canvas-update-artboard-styles") {
             log(`Reloading artboard styles... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
             const styles = data.payload;
-            const artboardEl = document.getElementById("artboard");
+            const artboardEl = document.getElementById("artboard_1");
             Object.entries(styles).forEach(([prop, value]) => (artboardEl.style[prop] = value));
           }
 
@@ -260,7 +260,7 @@
             const elementEl = document.createElement(type);
             elementEl.id = id;
             Object.entries(style).forEach(([prop, value]) => (elementEl.style[prop] = value));
-            document.getElementById("artboard").appendChild(elementEl);
+            document.getElementById("artboard_1").appendChild(elementEl);
           }
 
           if (data.type === "canvas-update-element-styles") {
