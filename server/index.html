@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ollama && MCP Server && Studio</title>
+    <title>Ollama &amp;&amp; MCP Server &amp;&amp; Studio</title>
     <style>
       html,
       body {
@@ -186,18 +186,18 @@
         const statusEl = document.getElementById("status");
 
         evtSource.onopen = () => {
-          statusEl.textContent = "SSE conectado.";
+          statusEl.textContent = "SSE connected.";
           log(statusEl.textContent);
         };
 
         evtSource.onmessage = (e) => {
           const data = JSON.parse(e.data);
           if (data.type === "message") {
-            log(`Mensaje recibido: ${data.payload}`);
+            log(`Message received: ${data.payload}`);
           }
 
           if (data.type === "reload") {
-            log(`Recargando canvas... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            log(`Reloading canvas... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
             const canvas = data.payload;
             const css = canvas.css;
             if (css) {
@@ -225,13 +225,13 @@
               });
               artboardEl.appendChild(el);
             });
-            log(`Canvas recargado (${data.type})`);
+            log(`Canvas reloaded (${data.type})`);
 
             autoZoom();
           }
 
           if (data.type === "canvas-update-css") {
-            log(`Recargando CSS... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            log(`Reloading CSS... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
             const style = document.createElement("style");
             style.textContent = `.canvas-wrapper {
               ${data.payload}
@@ -240,28 +240,28 @@
           }
 
           if (data.type === "canvas-update-artboard-styles") {
-            log(`Recargando estilos del lienzo... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            log(`Reloading artboard styles... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
             const styles = data.payload;
             const artboardEl = document.getElementById("artboard");
             Object.entries(styles).forEach(([prop, value]) => (artboardEl.style[prop] = value));
           }
 
           if (data.type === "canvas-update-element-styles") {
-            log(`Recargando estilos del elemento... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            log(`Reloading element styles... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
             const { id, style } = data.payload;
             const elementEl = document.querySelector(`[data-element-id="${id}"]`);
             Object.entries(style).forEach(([prop, value]) => (elementEl.style[prop] = value));
           }
 
           if (data.type === "canvas-delete-element") {
-            log(`Eliminando elemento... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            log(`Removing element... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
             const { id } = data.payload;
             const elementEl = document.querySelector(`[data-element-id="${id}"]`);
             elementEl.remove();
           }
 
           if (data.type === "canvas-add-element") {
-            log(`Agregando elemento... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            log(`Adding element... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
             const { id, type, style } = data.payload;
             const elementEl = document.createElement(type);
             elementEl.dataset.elementId = id;
@@ -271,7 +271,7 @@
         };
 
         evtSource.onerror = (e) => {
-          statusEl.textContent = "Conexión SSE cerrada o error.";
+          statusEl.textContent = "SSE connection closed or error.";
           log(statusEl.textContent);
           evtSource.close();
         };
