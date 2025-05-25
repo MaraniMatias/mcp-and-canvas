@@ -47,5 +47,5 @@ You can test it with [ollama](https://ollama.com/) and [mcphost](https://github.
 
 ```bash
 ollama server
-mcphost -m ollama:qwen3:8b
+mcphost -m ollama:qwen3:1.7b
 ```
