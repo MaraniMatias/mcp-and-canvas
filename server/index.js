@@ -9,7 +9,8 @@ const clients = new Set();
 const encoder = new TextEncoder();
 
 const canvasJson = {
-  // css: "",
+  css: "",
+  javascript: "",
   artboard: {
     id: "artboard1",
     type: "div",
@@ -181,7 +182,7 @@ serve({
         client.enqueue(data);
       }
 
-      canvasJson.css = body.css;
+      canvasJson.javascript = body.javascript;
       return sendResp(canvasJson);
     }
 
@@ -220,7 +221,7 @@ serve({
         return sendResp("JSON inválido", 400);
       }
 
-      const isStyleValid = ["width", "height", "left", "top"].every((styleKey) => typeof style[styleKey] !== undefined);
+      const isStyleValid = ["width", "height", "left", "top"].every((key) => key in style);
 
       if (!isStyleValid) {
         return sendResp("Is invalid Style, messing width, height, left, top", 400);
