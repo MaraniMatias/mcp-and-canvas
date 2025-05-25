@@ -5,7 +5,8 @@
   "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/node-fetch": "^2.6.12"
   },
   "peerDependencies": {
     "typescript": "^5"

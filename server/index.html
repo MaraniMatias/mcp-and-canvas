@@ -219,10 +219,8 @@
             artboardEl.innerHTML = "";
             children?.forEach((child) => {
               const el = document.createElement(child.type || "div");
-              el.dataset.elementId = child.id;
-              Object.entries(child).forEach(([prop, value]) => {
-                el.style[prop] = value;
-              });
+              el.id = child.id;
+              Object.entries(child).forEach(([prop, value]) => el.style[prop] = value; );
               artboardEl.appendChild(el);
             });
             log(`Canvas reloaded (${data.type})`);
@@ -239,6 +237,13 @@
             document.head.appendChild(style);
           }
 
+          if (data.type === "canvas-update-javascript") {
+            log(`Reloading javascript... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            const script = document.createElement("script");
+            script.textContent = data.payload;
+            document.head.appendChild(script);
+          }
+
           if (data.type === "canvas-update-artboard-styles") {
             log(`Reloading artboard styles... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
             const styles = data.payload;
@@ -246,27 +251,27 @@
             Object.entries(styles).forEach(([prop, value]) => (artboardEl.style[prop] = value));
           }
 
+          if (data.type === "canvas-add-element") {
+            log(`Adding element... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            const { id, type, style } = data.payload;
+            const elementEl = document.createElement(type);
+            elementEl.id = id;
+            Object.entries(style).forEach(([prop, value]) => (elementEl.style[prop] = value));
+            document.getElementById("artboard").appendChild(elementEl);
+          }
+
           if (data.type === "canvas-update-element-styles") {
             log(`Reloading element styles... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
             const { id, style } = data.payload;
-            const elementEl = document.querySelector(`[data-element-id="${id}"]`);
+            const elementEl = document.getElementById(id);
             Object.entries(style).forEach(([prop, value]) => (elementEl.style[prop] = value));
           }
 
           if (data.type === "canvas-delete-element") {
             log(`Removing element... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
             const { id } = data.payload;
-            const elementEl = document.querySelector(`[data-element-id="${id}"]`);
+            const elementEl = document.getElementById(id);
             elementEl.remove();
-          }
-
-          if (data.type === "canvas-add-element") {
-            log(`Adding element... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
-            const { id, type, style } = data.payload;
-            const elementEl = document.createElement(type);
-            elementEl.dataset.elementId = id;
-            Object.entries(style).forEach(([prop, value]) => (elementEl.style[prop] = value));
-            document.getElementById("artboard").appendChild(elementEl);
           }
         };
 

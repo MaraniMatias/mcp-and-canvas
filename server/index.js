@@ -168,6 +168,23 @@ serve({
       return sendResp(canvasJson);
     }
 
+    if (url.pathname === "/canvas/javascript" && req.method === "POST") {
+      let body;
+      try {
+        body = await req.json();
+      } catch {
+        return sendResp("JSON inválido", 400);
+      }
+
+      const data = getEncodedData("canvas-update-javascript", body.javascript);
+      for (const client of clients) {
+        client.enqueue(data);
+      }
+
+      canvasJson.css = body.css;
+      return sendResp(canvasJson);
+    }
+
     if (url.pathname === "/canvas/artboard/styles" && req.method === "POST") {
       let body;
       let style;

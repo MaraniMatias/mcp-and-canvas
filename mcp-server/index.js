@@ -8,6 +8,7 @@ const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
 
 const GET_CURRENT_CANVAS = `${SERVER_URL}/canvas`;
 const UPDATE_CSS_STYLES = `${SERVER_URL}/canvas/css`;
+const UPDATE_JAVASCRIPT = `${SERVER_URL}/canvas/javascript`;
 const UPDATE_ARTBOARD_STYLES = `${SERVER_URL}/canvas/artboard/styles`;
 const UPDATE_ELEMENT_STYLES = (elementId) => `${SERVER_URL}/canvas/element/${elementId}/styles`;
 const ADD_ELEMENT = `${SERVER_URL}/canvas/add-element`;
@@ -65,14 +66,42 @@ server.tool(
       return {
         content: [
           { type: "text", text: "Updated CSS styles successfully" },
-          // {
-          //   type: "resource",
-          //   resource: {
-          //     uri: "file:///canvas.json",
-          //     mimeType: "application/json",
-          //     text: payload,
-          //   },
-          // },
+          {
+            type: "resource",
+            resource: { uri: "file:///canvas.json", mimeType: "application/json", text: payload },
+          },
+        ],
+      };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: err.message }],
+      };
+    }
+  },
+);
+
+server.tool(
+  "update-javascript",
+  "Update the javascript, this removes all previous javascript",
+  {
+    javascript: z.string().max(1000).optional().describe("Javascript to apply on the application web").default(`* {
+  border: 1px solid red;
+  }`),
+  },
+  async ({ javascript }) => {
+    try {
+      const body = { javascript };
+      const { data: canvas } = await fetch.post(UPDATE_JAVASCRIPT, body);
+      const payload = JSON.stringify(canvas);
+
+      return {
+        content: [
+          { type: "text", text: "Updated CSS styles successfully" },
+          {
+            type: "resource",
+            resource: { uri: "file:///canvas.json", mimeType: "application/json", text: payload },
+          },
         ],
       };
     } catch (err) {
@@ -100,14 +129,10 @@ server.tool(
       return {
         content: [
           { type: "text", text: "Updated artboard styles successfully" },
-          // {
-          //   type: "resource",
-          //   resource: {
-          //     uri: "file:///canvas.json",
-          //     mimeType: "application/json",
-          //     text: payload,
-          //   },
-          // },
+          {
+            type: "resource",
+            resource: { uri: "file:///canvas.json", mimeType: "application/json", text: payload },
+          },
         ],
       };
     } catch (err) {
@@ -136,14 +161,10 @@ server.tool(
       return {
         content: [
           { type: "text", text: "Elemento updated successfully" },
-          // {
-          //   type: "resource",
-          //   resource: {
-          //     uri: "file:///canvas.json",
-          //     mimeType: "application/json",
-          //     text: payload,
-          //   },
-          // },
+          {
+            type: "resource",
+            resource: { uri: "file:///canvas.json", mimeType: "application/json", text: payload },
+          },
         ],
       };
     } catch (err) {
@@ -178,14 +199,10 @@ server.tool(
       return {
         content: [
           { type: "text", text: "Elemento agregado exitosamente" },
-          // {
-          //   type: "resource",
-          //   resource: {
-          //     uri: "file:///canvas",
-          //     mimeType: "application/json",
-          //     text: payload,
-          //   },
-          // },
+          {
+            type: "resource",
+            resource: { uri: "file:///canvas", mimeType: "application/json", text: payload },
+          },
         ],
       };
     } catch (err) {
@@ -211,14 +228,10 @@ server.tool(
       return {
         content: [
           { type: "text", text: "Elemento eliminado exitosamente" },
-          // {
-          //   type: "resource",
-          //   resource: {
-          //     uri: "file:///canvas.json",
-          //     mimeType: "application/json",
-          //     text: payload,
-          //   },
-          // },
+          {
+            type: "resource",
+            resource: { uri: "file:///canvas.json", mimeType: "application/json", text: payload },
+          },
         ],
       };
     } catch (err) {
@@ -230,14 +243,14 @@ server.tool(
   },
 );
 
-// server.prompt("Agrega un nueve elemento", () => ({
-//   messages: [
-//     {
-//       role: "user",
-//       content: "Agrega un nueve elemento azul de 120x120, con bordes redondeados, en la posición (100, 100)",
-//     },
-//   ],
-// }));
+server.prompt("Agrega un nueve elemento", () => ({
+  messages: [
+    {
+      role: "user",
+      content: "Agrega un nueve elemento amarillo de 120x120, con bordes redondeados, en la posición (100, 100)",
+    },
+  ],
+}));
 
 server.resource("canvas.json", "file:///canvas.json", async () => {
   const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
