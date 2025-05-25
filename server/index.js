@@ -12,7 +12,7 @@ const canvasJson = {
   css: "",
   javascript: "",
   artboard: {
-    id: "artboard1",
+    id: "artboard_1",
     type: "div",
     width: "800px",
     height: "600px",
@@ -20,7 +20,7 @@ const canvasJson = {
     children: [
       {
         type: "div",
-        id: "shape1",
+        id: "shape_1",
         top: "50px",
         left: "50px",
         width: "100px",
