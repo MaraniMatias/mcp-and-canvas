@@ -194,14 +194,13 @@ serve({
 
     if (url.pathname === "/canvas/artboard/styles" && req.method === "POST") {
       let body;
-      let style;
       try {
         body = await req.json();
-        style = JSON.parse(body.style);
       } catch (err) {
         return sendResp(err, 400);
       }
 
+      const style = body.style;
       const data = getEncodedData("canvas-update-artboard-styles", style);
       for (const client of clients) {
         client.enqueue(data);
@@ -219,14 +218,13 @@ serve({
 
     if (url.pathname === "/canvas/add-element" && req.method === "POST") {
       let body;
-      let style;
       try {
         body = await req.json();
-        style = JSON.parse(body.style);
       } catch (err) {
         return sendResp(err, 400);
       }
 
+      const style = body.style;
       const isStyleValid = ["width", "height", "left", "top"].every((key) => key in style);
 
       if (!isStyleValid) {
@@ -252,7 +250,7 @@ serve({
       } catch (err) {
         return sendResp(err, 400);
       }
-      const style = JSON.parse(body.style);
+      const style = body.style;
 
       const data = getEncodedData("canvas-update-element-styles", {
         id: elementId,

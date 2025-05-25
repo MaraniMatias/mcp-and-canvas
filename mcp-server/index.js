@@ -122,7 +122,7 @@ server.tool(
   },
   async ({ style }) => {
     try {
-      const body = { style };
+      const body = { style: JSON.parse(style) };
       const { data: canvas } = await fetch.post(UPDATE_ARTBOARD_STYLES, body);
       const payload = JSON.stringify(canvas);
 
@@ -154,7 +154,7 @@ server.tool(
   },
   async ({ id, style }) => {
     try {
-      const body = { style };
+      const body = { style: JSON.parse(style) };
       const { data: canvas } = await fetch.post(UPDATE_ELEMENT_STYLES(id), body);
       const payload = JSON.stringify(canvas);
 
@@ -192,7 +192,7 @@ server.tool(
   },
   async ({ id, type, style }) => {
     try {
-      const body = { id, type, style };
+      const body = { id, type, style: JSON.parse(style) };
       const { data: canvas } = await fetch.post(ADD_ELEMENT, body);
       const payload = JSON.stringify(canvas);
 
@@ -253,17 +253,24 @@ server.prompt("Agrega un nueve elemento", () => ({
 }));
 
 server.resource("canvas.json", "file:///canvas.json", async () => {
-  const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
+  try {
+    const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
 
-  return {
-    contents: [
-      {
-        uri: "file:///canvas.json",
-        mimeType: "application/json",
-        text: JSON.stringify(canvas),
-      },
-    ],
-  };
+    return {
+      contents: [
+        {
+          uri: "file:///canvas.json",
+          mimeType: "application/json",
+          text: JSON.stringify(canvas),
+        },
+      ],
+    };
+  } catch (err) {
+    return {
+      isError: true,
+      content: [{ type: "text", text: err.message }],
+    };
+  }
 });
 
 const transport = new StdioServerTransport();
