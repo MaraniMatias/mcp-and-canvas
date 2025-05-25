@@ -1,6 +1,7 @@
 import fs from "bun:fs";
 import path from "bun:path";
 import { serve } from "bun";
+import { error } from "zod/v4/locales/th.js";
 
 const PORT = process.env.PORT || 3000;
 
@@ -75,9 +76,7 @@ serve({
   async fetch(req) {
     const url = new URL(req.url);
     const timestamp = new Date().toISOString();
-    console.log(
-      `[${timestamp}] Incoming request: ${req.method} ${url.pathname}`,
-    );
+    console.log(`[${timestamp}] Incoming request: ${req.method} ${url.pathname}`);
 
     if (url.pathname === "/" || url.pathname === "/index.html") {
       try {
@@ -99,9 +98,7 @@ serve({
         start(controller) {
           controllerRef = controller;
           clients.add(controller);
-          console.log(
-            `[${timestamp}] Client added. Total clients: ${clients.size}`,
-          );
+          console.log(`[${timestamp}] Client added. Total clients: ${clients.size}`);
 
           controller.enqueue(encoder.encode(": conectado\n\n"));
 
@@ -116,9 +113,7 @@ serve({
         cancel() {
           clearInterval(intervalId);
           clients.delete(controllerRef);
-          console.log(
-            `[${new Date().toISOString()}] Client disconnected. Total clients: ${clients.size}`,
-          );
+          console.log(`[${new Date().toISOString()}] Client disconnected. Total clients: ${clients.size}`);
         },
       });
 
@@ -208,6 +203,12 @@ serve({
         return sendResp("JSON inválido", 400);
       }
 
+      const isStyleValid = ["width", "height", "left", "top"].every((styleKey) => typeof style[styleKey] !== undefined);
+
+      if (!isStyleValid) {
+        return sendResp("Is invalid Style, messing width, height, left, top", 400);
+      }
+
       const data = getEncodedData("canvas-add-element", { ...body, style });
       for (const client of clients) {
         client.enqueue(data);
@@ -238,9 +239,7 @@ serve({
         client.enqueue(data);
       }
 
-      const element = canvasJson.artboard?.children.find(
-        (child) => child.id === elementId,
-      );
+      const element = canvasJson.artboard?.children.find((child) => child.id === elementId);
       Object.assign(element, { id: elementId, ...style, position: "absolute" });
 
       return sendResp(canvasJson);
@@ -255,9 +254,7 @@ serve({
         client.enqueue(data);
       }
 
-      const index = canvasJson.artboard.children.findIndex(
-        (child) => child.id === elementId,
-      );
+      const index = canvasJson.artboard.children.findIndex((child) => child.id === elementId);
       canvasJson.artboard.children.splice(index, 1);
 
       return sendResp(canvasJson);
