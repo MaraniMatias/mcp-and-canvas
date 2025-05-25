@@ -200,10 +200,16 @@
             log(`Reloading canvas... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
             const canvas = data.payload;
             const css = canvas.css;
+            const javaScript = canvas.javascript;
             if (css) {
               const style = document.createElement("style");
               style.textContent = css;
               document.head.appendChild(style);
+            }
+            if (javaScript) {
+              const script = document.createElement("script");
+              script.textContent = javaScript;
+              document.body.appendChild(script);
             }
 
             const { children, ...artboard } = canvas.artboard;
