@@ -209,18 +209,16 @@
             const { children, ...artboard } = canvas.artboard;
 
             const artboardEl = document.getElementById("artboard");
-            artboardEl.dataset.elementId = artboard.id;
+            artboardEl.id = artboard.id;
             if (artboardEl) {
-              Object.entries(artboard).forEach(([prop, value]) => {
-                artboardEl.style[prop] = value;
-              });
+              Object.entries(artboard).forEach(([prop, value]) => (artboardEl.style[prop] = value));
             }
 
             artboardEl.innerHTML = "";
-            children?.forEach((child) => {
-              const el = document.createElement(child.type || "div");
-              el.id = child.id;
-              Object.entries(child).forEach(([prop, value]) => el.style[prop] = value; );
+            children?.forEach(({ id, type, ...style }) => {
+              const el = document.createElement(type || "div");
+              el.id = id;
+              Object.entries(style).forEach(([prop, value]) => (el.style[prop] = value));
               artboardEl.appendChild(el);
             });
             log(`Canvas reloaded (${data.type})`);
