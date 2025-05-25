@@ -40,6 +40,12 @@ const canvasJson = {
  */
 function sendResp(payload, status = 200, headers = {}) {
   let body = payload;
+
+  if (payload instanceof Error) {
+    status = status ?? 500;
+    body = payload.message;
+  }
+
   if (
     !(
       typeof payload === "string" ||
@@ -129,8 +135,8 @@ serve({
       let body;
       try {
         body = await req.json();
-      } catch {
-        return sendResp("JSON inválido", 400);
+      } catch (err) {
+        return sendResp(err, 400);
       }
 
       const ssePayload = {
@@ -156,8 +162,8 @@ serve({
       let body;
       try {
         body = await req.json();
-      } catch {
-        return sendResp("JSON inválido", 400);
+      } catch (err) {
+        return sendResp(err, 400);
       }
 
       const data = getEncodedData("canvas-update-css", body.css);
@@ -173,8 +179,8 @@ serve({
       let body;
       try {
         body = await req.json();
-      } catch {
-        return sendResp("JSON inválido", 400);
+      } catch (err) {
+        return sendResp(err, 400);
       }
 
       const data = getEncodedData("canvas-update-javascript", body.javascript);
@@ -192,8 +198,8 @@ serve({
       try {
         body = await req.json();
         style = JSON.parse(body.style);
-      } catch {
-        return sendResp("JSON inválido", 400);
+      } catch (err) {
+        return sendResp(err, 400);
       }
 
       const data = getEncodedData("canvas-update-artboard-styles", style);
@@ -217,8 +223,8 @@ serve({
       try {
         body = await req.json();
         style = JSON.parse(body.style);
-      } catch {
-        return sendResp("JSON inválido", 400);
+      } catch (err) {
+        return sendResp(err, 400);
       }
 
       const isStyleValid = ["width", "height", "left", "top"].every((key) => key in style);
@@ -243,8 +249,8 @@ serve({
       let body;
       try {
         body = await req.json();
-      } catch {
-        return sendResp("JSON inválido", 400);
+      } catch (err) {
+        return sendResp(err, 400);
       }
       const style = JSON.parse(body.style);
 
