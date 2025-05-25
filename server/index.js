@@ -264,6 +264,8 @@ serve({
       }
 
       const element = canvasJson.artboard?.children.find((child) => child.id === elementId);
+      if (!element) return sendResp("Element not found", 404);
+
       Object.assign(element, { id: elementId, ...style, position: "absolute" });
 
       return sendResp(canvasJson);
