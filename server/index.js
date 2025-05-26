@@ -1,7 +1,6 @@
 import fs from "bun:fs";
 import path from "bun:path";
 import { serve } from "bun";
-import { error } from "zod/v4/locales/th.js";
 
 const PORT = process.env.PORT || 3000;
 
@@ -78,6 +77,15 @@ function getEncodedData(type, payload) {
   return encoder.encode(`data: ${encodedPayload}\n\n`);
 }
 
+async function parseBody(req) {
+  try {
+    const body = await req.json();
+    return { body, err: null };
+  } catch (err) {
+    return { body, err };
+  }
+}
+
 serve({
   port: PORT,
   async fetch(req) {
@@ -132,10 +140,8 @@ serve({
     }
 
     if (url.pathname === "/message" && req.method === "POST") {
-      let body;
-      try {
-        body = await req.json();
-      } catch (err) {
+      const { body, err } = parseBody(req);
+      if (err) {
         return sendResp(err, 400);
       }
 
