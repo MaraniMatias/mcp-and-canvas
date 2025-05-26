@@ -6,6 +6,7 @@ import fetch from "./fetch.js";
 
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
 
+const GET_APP_WEB = `${SERVER_URL}/`;
 const GET_CURRENT_CANVAS = `${SERVER_URL}/canvas`;
 const UPDATE_CSS_STYLES = `${SERVER_URL}/canvas/css`;
 const UPDATE_JAVASCRIPT = `${SERVER_URL}/canvas/javascript`;
@@ -260,6 +261,27 @@ server.resource("canvas.json", "file:///canvas.json", async () => {
       contents: [
         {
           uri: "file:///canvas.json",
+          mimeType: "application/json",
+          text: JSON.stringify(canvas),
+        },
+      ],
+    };
+  } catch (err) {
+    return {
+      isError: true,
+      content: [{ type: "text", text: err.message }],
+    };
+  }
+});
+
+server.resource("index.html", "file:///index.html", async () => {
+  try {
+    const { data: canvas } = await fetch.get(GET_APP_WEB);
+
+    return {
+      contents: [
+        {
+          uri: "file:///index.html",
           mimeType: "application/json",
           text: JSON.stringify(canvas),
         },
