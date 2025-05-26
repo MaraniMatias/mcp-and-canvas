@@ -86,7 +86,7 @@ serve({
     }
 
     if (url.pathname === "/message" && req.method === "POST") {
-      const { body, err } = parseBody(req);
+      const { body, err } = await parseBody(req);
       if (err) {
         return sendResp(err, 400);
       }
@@ -111,7 +111,7 @@ serve({
     }
 
     if (url.pathname === "/canvas/css" && req.method === "POST") {
-      const { body, err } = parseBody(req);
+      const { body, err } = await parseBody(req);
       if (err) {
         return sendResp(err, 400);
       }
@@ -126,7 +126,7 @@ serve({
     }
 
     if (url.pathname === "/canvas/javascript" && req.method === "POST") {
-      const { body, err } = parseBody(req);
+      const { body, err } = await parseBody(req);
       if (err) {
         return sendResp(err, 400);
       }
@@ -141,7 +141,7 @@ serve({
     }
 
     if (url.pathname === "/canvas/artboard/styles" && req.method === "POST") {
-      const { body, err } = parseBody(req);
+      const { body, err } = await parseBody(req);
       if (err) {
         return sendResp(err, 400);
       }
@@ -163,7 +163,7 @@ serve({
     }
 
     if (url.pathname === "/canvas/add-element" && req.method === "POST") {
-      const { body, err } = parseBody(req);
+      const { body, err } = await parseBody(req);
       if (err) {
         return sendResp(err, 400);
       }
@@ -187,13 +187,23 @@ serve({
     const match = url.pathname.match(/^\/canvas\/element\/([^/]+)\/styles$/);
     if (match && req.method === "POST") {
       const elementId = match[1];
+      // Is a valid element id
+      if (!/^[a-zA-Z0-9_-]+$/.test(elementId)) {
+        return sendResp("Invalid element id, must be alphanumeric", 400);
+      }
 
-      const { body, err } = parseBody(req);
+      const { body, err } = await parseBody(req);
       if (err) {
         return sendResp(err, 400);
       }
 
       const style = body.style;
+
+      const styleKeys = Object.keys(style);
+      if (styleKeys.length === 0 || styleKeys.some((key) => key.includes("&"))) {
+        return sendResp(new Error("Is invalid Style, don't use pseudoelements"), 400);
+      }
+
       const data = getEncodedData("canvas-update-element-styles", {
         id: elementId,
         style,

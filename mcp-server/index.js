@@ -6,7 +6,6 @@ import fetch from "./fetch.js";
 
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
 
-const GET_APP_WEB = `${SERVER_URL}/`;
 const GET_CURRENT_CANVAS = `${SERVER_URL}/canvas`;
 const UPDATE_CSS_STYLES = `${SERVER_URL}/canvas/css`;
 const UPDATE_JAVASCRIPT = `${SERVER_URL}/canvas/javascript`;

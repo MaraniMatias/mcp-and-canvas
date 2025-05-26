@@ -1,5 +1,5 @@
 /**
- * @param {any} payload - Payload to send in the response
+ * @param {any|Erro} payload - Payload to send in the response
  * @param {200|400|404|500} status - HTTP status code
  * @param {
  * @returns {Response}
@@ -7,8 +7,9 @@
 export function sendResp(payload, status = 200, headers = {}) {
   let body = payload;
 
+  let _status = status;
   if (payload instanceof Error) {
-    status = status ?? 500;
+    _status = status ?? 500;
     body = payload.message;
   }
 
@@ -25,7 +26,7 @@ export function sendResp(payload, status = 200, headers = {}) {
   }
 
   return new Response(body, {
-    status: status,
+    status: _status,
     headers: { "Content-Type": "application/json", ...headers },
   });
 }
@@ -44,11 +45,11 @@ export function getEncodedData(type, payload) {
   return encoder.encode(`data: ${encodedPayload}\n\n`);
 }
 
-async function parseBody(req) {
+export async function parseBody(req) {
   try {
     const body = await req.json();
     return { body, err: null };
   } catch (err) {
-    return { body, err };
+    return { body: null, err };
   }
 }
