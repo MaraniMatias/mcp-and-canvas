@@ -22,7 +22,7 @@ const server = new McpServer({
 
 server.tool(
   "get-current-canvas",
-  `Read the complete contents of the current canvas, return it as a JSON object with css styles, artboard, and elements.Example: { "css": "", "artboard": { "id": "artboard_1", "type": "div", "width": "800px", "height": "600px", "background": "#ffffff", "children": [ { "type": "div", "id": "shape_1", "top": "50px", "left": "50px", "width": "100px", "height": "100px", "border": "1px solid #000", "borderRadius": "50%", "background": "#ff0000" }, { "type": "div", "id": "shape_2", "top": "50px", "left": "50px", "width": "100px", "height": "100px", "border": "1px solid #000", "borderRadius": "50%", "background": "red" }, { "type": "p", "id": "paragraph_1", "top": "60px", "left": "60px", "width": "100px", "height": "100px", "content": "Hello World" } ] } }`,
+  "Retrieves the entire current canvas and returns its contents in JSON format.",
   async () => {
     try {
       const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
@@ -52,11 +52,14 @@ server.tool(
 
 server.tool(
   "update-css-styles",
-  "Update the CSS styles of the application web, this removes all previous styles",
+  "Replaces the web application’s CSS styles with the provided styles, removing any previous ones.",
   {
-    css: z.string().max(1000).optional().describe("CSS styles to apply on the application web").default(`* {
-  border: 1px solid red;
-  }`),
+    css: z
+      .string()
+      .max(1000)
+      .optional()
+      .describe("CSS styles to apply on the application web")
+      .default("* { border: 1px solid red; }"),
   },
   async ({ css }) => {
     try {
@@ -84,11 +87,14 @@ server.tool(
 
 server.tool(
   "update-javascript",
-  "Update the javascript, this removes all previous javascript",
+  "Replaces the web application’s JavaScript code with the provided script, removing any previous scripts.",
   {
-    javascript: z.string().max(1000).optional().describe("Javascript to apply on the application web").default(`* {
-  border: 1px solid red;
-  }`),
+    javascript: z
+      .string()
+      .max(1000)
+      .optional()
+      .describe("Javascript to apply on the application web")
+      .default("* { border: 1px solid red; }"),
   },
   async ({ javascript }) => {
     try {
@@ -116,7 +122,7 @@ server.tool(
 
 server.tool(
   "update-artboard-styles",
-  "Update the CSS styles of the artboard, this replaces previous styles",
+  "Updates the artboard’s CSS styles by completely replacing the previous styles.",
   {
     // style: z.object({}).describe("CSS artboard styles to apply as JSON"),
     style: z.string().describe("CSS artboard styles to apply as JSON string"),
@@ -147,7 +153,7 @@ server.tool(
 
 server.tool(
   "update-element-styles",
-  "Update the CSS styles of the element, this replaces previous styles",
+  "Modifies the CSS styles of a specific element (by its ID), replacing its previous styles.",
   {
     id: z.string().describe("Element id, must be unique").min(3),
     // style: z.object({}).describe("CSS element styles to apply, must be a JSON").default({}),
@@ -179,7 +185,7 @@ server.tool(
 
 server.tool(
   "add-new-element",
-  "Add a new element to the canvas, it will be added as child of one element, if not, it will be added as child of the artboard",
+  "Adds a new element to the canvas. If a parent element is specified, it will be inserted as its child; otherwise, it will be added to the artboard.",
   {
     id: z.string().describe("Element id, must be unique").min(3),
     type: z.enum(["div", "span", "p", "img"]).optional().default("div"),
@@ -217,9 +223,9 @@ server.tool(
 
 server.tool(
   "remove-element",
-  "Remove an element from the canvas",
+  "Removes an element from the current canvas, identified by its ID.",
   {
-    id: z.string().describe("Element id").min(3),
+    id: z.string().describe("Element id, must be unique").min(3),
   },
   async ({ id }) => {
     try {
@@ -261,27 +267,6 @@ server.resource("canvas.json", "file:///canvas.json", async () => {
       contents: [
         {
           uri: "file:///canvas.json",
-          mimeType: "application/json",
-          text: JSON.stringify(canvas),
-        },
-      ],
-    };
-  } catch (err) {
-    return {
-      isError: true,
-      content: [{ type: "text", text: err.message }],
-    };
-  }
-});
-
-server.resource("index.html", "file:///index.html", async () => {
-  try {
-    const { data: canvas } = await fetch.get(GET_APP_WEB);
-
-    return {
-      contents: [
-        {
-          uri: "file:///index.html",
           mimeType: "application/json",
           text: JSON.stringify(canvas),
         },
