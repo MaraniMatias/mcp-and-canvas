@@ -122,6 +122,13 @@
     </div>
 
     <script>
+      const artboard = document.getElementById("artboard_1");
+      const wrapper = document.querySelector(".canvas-wrapper");
+      const overlay = document.querySelector(".overlay");
+      const range = document.getElementById("zoom-range");
+      const zoomIn = document.getElementById("zoom-in");
+      const zoomOut = document.getElementById("zoom-out");
+      const zoomValue = document.getElementById("zoom-value");
       const logEl = document.getElementById("log");
 
       function log(message) {
@@ -131,16 +138,6 @@
         logEl.appendChild(p);
         logEl.scrollTop = logEl.scrollHeight;
       }
-    </script>
-
-    <script>
-      const artboard = document.getElementById("artboard_1");
-      const wrapper = document.querySelector(".canvas-wrapper");
-      const overlay = document.querySelector(".overlay");
-      const range = document.getElementById("zoom-range");
-      const zoomIn = document.getElementById("zoom-in");
-      const zoomOut = document.getElementById("zoom-out");
-      const zoomValue = document.getElementById("zoom-value");
 
       function setZoom(z) {
         artboard.style.setProperty("--zoom", z);
@@ -192,91 +189,93 @@
 
         evtSource.onmessage = (e) => {
           const data = JSON.parse(e.data);
-          switch (data.type) {
-            case "reload":
-              log(`Reloading canvas... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
-              const canvas = data.payload;
-              const css = canvas.css;
-              const javaScript = canvas.javascript;
-              if (css) {
-                const style = document.createElement("style");
-                style.textContent = css;
-                document.head.appendChild(style);
-              }
-              if (javaScript) {
-                const script = document.createElement("script");
-                script.textContent = javaScript;
-                document.body.appendChild(script);
-              }
+          console.log(data);
 
-              const { children, ...artboard } = canvas.artboard;
-
-              const artboardEl = document.getElementById("artboard_1");
-              if (artboardEl) {
-                Object.entries(artboard).forEach(([prop, value]) => (artboardEl.style[prop] = value));
-              }
-
-              artboardEl.innerHTML = "";
-              children?.forEach(({ id, type, ...style }) => {
-                const el = document.createElement(type || "div");
-                el.id = id;
-                Object.entries(style).forEach(([prop, value]) => (el.style[prop] = value));
-                artboardEl.appendChild(el);
-              });
-              log(`Canvas reloaded (${data.type})`);
-
-              autoZoom();
-              break;
-            case "canvas-update-css":
-              log(`Reloading CSS... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+          if (data.type === "reload") {
+            log(`Reloading canvas... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            const canvas = data.payload;
+            const css = canvas.css;
+            if (css) {
               const style = document.createElement("style");
-              style.textContent = `.canvas-wrapper { ${data.payload} }`;
+              style.textContent = css;
               document.head.appendChild(style);
-              break;
-            case "canvas-update-javascript":
-              log(`Reloading javascript... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            }
+            const javaScript = canvas.javascript;
+            if (javaScript) {
               const script = document.createElement("script");
-              script.textContent = data.payload;
-              document.head.appendChild(script);
-              break;
-            case "canvas-update-artboard-styles":
-              log(`Reloading artboard styles... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
-              const styles = data.payload;
-              const artboardEl = document.getElementById("artboard_1");
-              Object.entries(styles).forEach(([prop, value]) => (artboardEl.style[prop] = value));
-              break;
-            case "canvas-add-element":
-              log(`Adding element... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
-              const { id, type, style } = data.payload;
-              const elementEl = document.createElement(type);
-              elementEl.id = id;
-              Object.entries(style).forEach(([prop, value]) => (elementEl.style[prop] = value));
-              document.getElementById("artboard_1").appendChild(elementEl);
-              break;
-            case "canvas-update-element-styles":
-              log(`Reloading element styles... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
-              const { id, style } = data.payload;
-              const elementEl = document.getElementById(id);
-              Object.entries(style).forEach(([prop, value]) => (elementEl.style[prop] = value));
-              break;
-            case "canvas-delete-element":
-              log(`Removing element... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
-              const { id } = data.payload;
-              const elementEl = document.getElementById(id);
-              elementEl.remove();
-              break;
-            default:
-              log(`Message received: ${data.payload}`);
-              break;
+              script.textContent = javaScript;
+              document.body.appendChild(script);
+            }
+
+            const { children, ...artboard } = canvas.artboard;
+            const artboardEl = document.getElementById("artboard_1");
+            if (!artboardEl) return;
+
+            artboardEl.innerHTML = "";
+            Object.entries(artboard).forEach(([prop, value]) => {
+              artboardEl.style[prop] = value;
+            });
+            children?.forEach(({ id, type, ...style }) => {
+              const el = document.createElement(type || "div");
+              el.id = id;
+              Object.entries(style).forEach(([prop, value]) => {
+                el.style[prop] = value;
+              });
+              artboardEl.appendChild(el);
+            });
+
+            log(`Canvas reloaded (${data.type})`);
+            autoZoom();
+          } else if (data.type === "canvas-update-css") {
+            log(`Reloading CSS... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            const style = document.createElement("style");
+            style.textContent = `.canvas-wrapper { ${data.payload} }`;
+            document.head.appendChild(style);
+          } else if (data.type === "canvas-update-javascript") {
+            log(`Reloading javascript... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            const script = document.createElement("script");
+            script.textContent = data.payload;
+            document.body.appendChild(script);
+          } else if (data.type === "canvas-update-artboard-styles") {
+            log(`Reloading artboard styles... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            const styles = data.payload;
+            const artboardEl = document.getElementById("artboard_1");
+            Object.entries(styles).forEach(([prop, value]) => {
+              artboardEl.style[prop] = value;
+            });
+          } else if (data.type === "canvas-add-element") {
+            log(`Adding element... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            const { id, type, style } = data.payload;
+            const elementEl = document.createElement(type);
+            elementEl.id = id;
+            Object.entries(style).forEach(([prop, value]) => {
+              elementEl.style[prop] = value;
+            });
+            document.getElementById("artboard_1").appendChild(elementEl);
+          } else if (data.type === "canvas-update-element-styles") {
+            log(`Reloading element styles... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            const { id, style } = data.payload;
+            const elementEl = document.getElementById(id);
+            Object.entries(style).forEach(([prop, value]) => {
+              elementEl.style[prop] = value;
+            });
+          } else if (data.type === "canvas-delete-element") {
+            log(`Removing element... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
+            const { id } = data.payload;
+            const elementEl = document.getElementById(id);
+            elementEl.remove();
+          } else {
+            // default
+            log(`Message received: ${data.payload}`);
           }
         };
-
-        evtSource.onerror = (e) => {
-          statusEl.textContent = "SSE connection closed or error.";
-          log(statusEl.textContent);
-          evtSource.close();
-        };
       });
+
+      evtSource.onerror = (e) => {
+        statusEl.textContent = "SSE connection closed or error.";
+        log(statusEl.textContent);
+        evtSource.close();
+      };
     </script>
   </body>
 </html>

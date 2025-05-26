@@ -1,12 +1,13 @@
 import fs from "bun:fs";
 import path from "bun:path";
 import { serve } from "bun";
-import { getEncodedData, sendResp, parseBody } from "./utils.js";
+import { defineEncodedData, sendResp, parseBody } from "./utils.js";
 
 const PORT = process.env.PORT || 3000;
 
 const clients = new Set();
 const encoder = new TextEncoder();
+const getEncodedData = defineEncodedData(encoder);
 
 const canvasJson = {
   css: "",

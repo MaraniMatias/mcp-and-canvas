@@ -32,17 +32,18 @@ export function sendResp(payload, status = 200, headers = {}) {
 }
 
 /**
- * @param {string} type - Type of the event
- * @param {any} payload - Payload to send in the response
- * @returns {string}
+ * @param {TextEncoder} encoder
+ * @returns {({type: string, payload: any})=>string}
  */
-export function getEncodedData(type, payload) {
-  const encodedPayload = JSON.stringify({
-    timestamp: new Date().toISOString(),
-    type: type,
-    payload: payload,
-  });
-  return encoder.encode(`data: ${encodedPayload}\n\n`);
+export function defineEncodedData(encoder) {
+  return (type, payload) => {
+    const encodedPayload = JSON.stringify({
+      timestamp: new Date().toISOString(),
+      type: type,
+      payload: payload,
+    });
+    return encoder.encode(`data: ${encodedPayload}\n\n`);
+  };
 }
 
 export async function parseBody(req) {
