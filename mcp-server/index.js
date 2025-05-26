@@ -54,12 +54,7 @@ server.tool(
   "update-css-styles",
   "Replaces the web application’s CSS styles with the provided styles, removing any previous ones.",
   {
-    css: z
-      .string()
-      .max(1000)
-      .optional()
-      .describe("CSS styles to apply on the application web")
-      .default("* { border: 1px solid red; }"),
+    css: z.string().describe("CSS styles to apply on the application web").default("* { border: 1px solid red; }"),
   },
   async ({ css }) => {
     try {
@@ -91,10 +86,8 @@ server.tool(
   {
     javascript: z
       .string()
-      .max(1000)
-      .optional()
       .describe("Javascript to apply on the application web")
-      .default("* { border: 1px solid red; }"),
+      .default("console.log('Hello World!');"),
   },
   async ({ javascript }) => {
     try {
