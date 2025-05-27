@@ -33,7 +33,7 @@ server.tool(
           {
             type: "resource",
             resource: {
-              uri: "file:///canvas.json",
+              uri: "file://canvas.json",
               mimeType: "application/json",
               text: payload,
             },
@@ -66,7 +66,7 @@ server.tool(
           { type: "text", text: "Updated CSS styles successfully" },
           {
             type: "resource",
-            resource: { uri: "file:///canvas.json", mimeType: "application/json", text: payload },
+            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
           },
         ],
       };
@@ -99,7 +99,7 @@ server.tool(
           { type: "text", text: "Updated CSS styles successfully" },
           {
             type: "resource",
-            resource: { uri: "file:///canvas.json", mimeType: "application/json", text: payload },
+            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
           },
         ],
       };
@@ -130,7 +130,7 @@ server.tool(
           { type: "text", text: "Updated artboard styles successfully" },
           {
             type: "resource",
-            resource: { uri: "file:///canvas.json", mimeType: "application/json", text: payload },
+            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
           },
         ],
       };
@@ -162,7 +162,7 @@ server.tool(
           { type: "text", text: "Elemento updated successfully" },
           {
             type: "resource",
-            resource: { uri: "file:///canvas.json", mimeType: "application/json", text: payload },
+            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
           },
         ],
       };
@@ -200,7 +200,7 @@ server.tool(
           { type: "text", text: "Elemento agregado exitosamente" },
           {
             type: "resource",
-            resource: { uri: "file:///canvas", mimeType: "application/json", text: payload },
+            resource: { uri: "file://canvas", mimeType: "application/json", text: payload },
           },
         ],
       };
@@ -229,7 +229,7 @@ server.tool(
           { type: "text", text: "Elemento eliminado exitosamente" },
           {
             type: "resource",
-            resource: { uri: "file:///canvas.json", mimeType: "application/json", text: payload },
+            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
           },
         ],
       };
@@ -242,7 +242,7 @@ server.tool(
   },
 );
 
-server.prompt("Agrega un nueve elemento", () => ({
+server.prompt("Agrega un nueve elemento", "Agrega un nueve elemento en el canvas", () => ({
   messages: [
     {
       role: "user",
@@ -258,7 +258,7 @@ server.resource("canvas.json", "file:///canvas.json", async () => {
     return {
       contents: [
         {
-          uri: "file:///canvas.json",
+          uri: "file://canvas.json",
           mimeType: "application/json",
           text: JSON.stringify(canvas),
         },
@@ -272,5 +272,8 @@ server.resource("canvas.json", "file:///canvas.json", async () => {
   }
 });
 
+// Connect the server using stdio transport
 const transport = new StdioServerTransport();
-await server.connect(transport);
+server.connect(transport).catch(console.error);
+
+console.log("Weather MCP Server started");
