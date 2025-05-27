@@ -19,6 +19,6 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
     "node-fetch": "^3.3.2",
-    "zod": "3.25.28"
+    "zod": "3.25.30"
   }
 }
