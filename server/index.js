@@ -147,7 +147,12 @@ serve({
         return sendResp(err, 400);
       }
 
-      const style = body.style;
+      const { base: style, pseudos, keyframes } = extractStyles(body.style);
+
+      if (Object.keys(pseudos).length > 0 || Object.keys(keyframes).length > 0) {
+        return sendResp("Is invalid Style, for keyframes and pseudos set global style", 400);
+      }
+
       const data = getEncodedData("canvas-update-artboard-styles", style);
       for (const client of clients) {
         client.enqueue(data);
