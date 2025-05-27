@@ -269,7 +269,7 @@ server.tool(
       return {
         isError: true,
         content: [
-          { type: "text", text: err.message }
+          { type: "text", text: err.message },
           { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
         ],
       };
