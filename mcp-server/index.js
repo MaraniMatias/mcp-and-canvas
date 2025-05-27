@@ -74,7 +74,10 @@ server.tool(
     } catch (err) {
       return {
         isError: true,
-        content: [{ type: "text", text: err.message }],
+        content: [
+          { type: "text", text: err.message },
+          { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
+        ],
       };
     }
   },
@@ -107,7 +110,10 @@ server.tool(
     } catch (err) {
       return {
         isError: true,
-        content: [{ type: "text", text: err.message }],
+        content: [
+          { type: "text", text: err.message },
+          { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
+        ],
       };
     }
   },
@@ -138,7 +144,10 @@ server.tool(
     } catch (err) {
       return {
         isError: true,
-        content: [{ type: "text", text: err.message }],
+        content: [
+          { type: "text", text: err.message },
+          { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
+        ],
       };
     }
   },
@@ -180,7 +189,10 @@ server.tool(
     } catch (err) {
       return {
         isError: true,
-        content: [{ type: "text", text: err.message }],
+        content: [
+          { type: "text", text: err.message },
+          { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
+        ],
       };
     }
   },
@@ -210,10 +222,12 @@ server.tool(
         ],
       };
     } catch (err) {
-      console.error(err);
       return {
         isError: true,
-        content: [{ type: "text", text: err.message }],
+        content: [
+          { type: "text", text: err.message },
+          { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
+        ],
       };
     }
   },
@@ -242,7 +256,10 @@ server.tool(
     } catch (err) {
       return {
         isError: true,
-        content: [{ type: "text", text: err.message }],
+        content: [
+          { type: "text", text: err.message },
+          { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
+        ],
       };
     }
   },
@@ -318,7 +335,10 @@ server.resource("canvas.json", "file://canvas.json", async () => {
   } catch (err) {
     return {
       isError: true,
-      content: [{ type: "text", text: err.message }],
+      content: [
+        { type: "text", text: err.message },
+        { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
+      ],
     };
   }
 });
