@@ -1,7 +1,7 @@
 import fs from "bun:fs";
 import path from "bun:path";
 import { serve } from "bun";
-import { defineEncodedData, sendResp, parseBody, extractStyles } from "./utils.js";
+import { defineEncodedData, extractStyles, parseBody, sendResp } from "./utils.js";
 
 const PORT = process.env.PORT || 3000;
 
@@ -208,7 +208,10 @@ serve({
         return sendResp("Is invalid Style, for keyframes and pseudos set global style", 400);
       }
 
-      const data = getEncodedData("canvas-update-element-styles", { id: elementId, style });
+      const data = getEncodedData("canvas-update-element-styles", {
+        id: elementId,
+        style,
+      });
 
       for (const client of clients) {
         client.enqueue(data);
@@ -232,6 +235,22 @@ serve({
       canvasJson.artboard.children.splice(index, 1);
 
       return sendResp(canvasJson);
+    }
+
+    const matchGet = url.pathname.match(/^\/canvas\/element\/([^/]+)$/);
+    if (matchGet && req.method === "GET") {
+      const elementId = matchGet[1];
+
+      if (!/^[a-zA-Z0-9_-]+$/.test(elementId)) {
+        return sendResp("Invalid element id, must be alphanumeric", 400);
+      }
+
+      const element = canvasJson.artboard.children.find((child) => child.id === elementId);
+      if (!element) {
+        return sendResp("Element not found", 404);
+      }
+
+      return sendResp(element);
     }
 
     return sendResp("Not Found", 404);

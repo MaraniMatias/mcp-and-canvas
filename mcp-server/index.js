@@ -13,6 +13,7 @@ const UPDATE_ARTBOARD_STYLES = `${SERVER_URL}/canvas/artboard/styles`;
 const UPDATE_ELEMENT_STYLES = (elementId) => `${SERVER_URL}/canvas/element/${elementId}/styles`;
 const ADD_ELEMENT = `${SERVER_URL}/canvas/add-element`;
 const REMOVE_ELEMENT = (elementId) => `${SERVER_URL}/canvas/element/${elementId}`;
+const GET_ELEMENT = (elementId) => `${SERVER_URL}/canvas/element/${elementId}`;
 
 const server = new McpServer({
   name: "mcp-x-studio",
@@ -147,7 +148,11 @@ server.tool(
   "add-new-element",
   "Adds a new element to the canvas. If a parent element is specified, it will be inserted as its child; otherwise, it will be added to the artboard.",
   {
-    id: z.string().describe("Element id, must be unique").min(3),
+    id: z
+      .string()
+      .describe("Element id, must be unique")
+      .min(3)
+      .regex(/^[a-zA-Z0-9_-]+$/, "El ID del elemento debe contener solo letras, números, guiones bajos y guiones"),
     type: z.enum(["div", "span", "p", "img"]).optional().default("div"),
     // style: z.object({}).describe("CSS element styles to apply, must be a JSON").default({}),
     style: z
@@ -243,7 +248,33 @@ server.tool(
   },
 );
 
-server.prompt("Obtener el estado del canvas",()=> {
+server.tool(
+  "check_if_element_exists_on_canvas",
+  "Check si el elemento existe en el canvas",
+  {
+    id: z
+      .string()
+      .describe("Element id, must be unique")
+      .min(3)
+      .regex(/^[a-zA-Z0-9_-]+$/, "El ID del elemento debe contener solo letras, números, guiones bajos y guiones"),
+  },
+  async ({ id }) => {
+    try {
+      const { data: element } = await fetch.get(GET_ELEMENT(id));
+
+      return {
+        content: [{ type: "text", text: "Elemento encontrado en el canvas. \n" + JSON.stringify(element, null, 2) }],
+      };
+    } catch (err) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: err.message }],
+      };
+    }
+  },
+);
+
+server.prompt("Obtener el estado del canvas", () => ({
   messages: [
     {
       role: "user",
@@ -251,7 +282,7 @@ server.prompt("Obtener el estado del canvas",()=> {
     },
   ],
 }));
-server.prompt("Agrega un nueve elemento",  () => ({
+server.prompt("Agrega un nueve elemento", () => ({
   messages: [
     {
       role: "user",
@@ -259,7 +290,7 @@ server.prompt("Agrega un nueve elemento",  () => ({
     },
   ],
 }));
-server.prompt("Add estilo a un elemento",  () => ({
+server.prompt("Add estilo a un elemento", () => ({
   messages: [
     {
       role: "user",
