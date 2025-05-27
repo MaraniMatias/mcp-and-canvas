@@ -144,38 +144,6 @@ server.tool(
 );
 
 server.tool(
-  "update-element-styles",
-  "Modifies the CSS styles of a specific element (by its ID), replacing its previous styles.",
-  {
-    id: z.string().describe("Element id, must be unique").min(3),
-    // style: z.object({}).describe("CSS element styles to apply, must be a JSON").default({}),
-    style: z.string().describe("CSS element styles to apply, must be a JSON string"),
-  },
-  async ({ id, style }) => {
-    try {
-      const body = { style: JSON.parse(style) };
-      const { data: canvas } = await fetch.post(UPDATE_ELEMENT_STYLES(id), body);
-      const payload = JSON.stringify(canvas);
-
-      return {
-        content: [
-          { type: "text", text: "Elemento updated successfully" },
-          {
-            type: "resource",
-            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
-          },
-        ],
-      };
-    } catch (err) {
-      return {
-        isError: true,
-        content: [{ type: "text", text: err.message }],
-      };
-    }
-  },
-);
-
-server.tool(
   "add-new-element",
   "Adds a new element to the canvas. If a parent element is specified, it will be inserted as its child; otherwise, it will be added to the artboard.",
   {
@@ -214,6 +182,39 @@ server.tool(
 );
 
 server.tool(
+  "update-element-styles",
+  "Modifies the CSS styles of a specific element (by its ID), replacing its previous styles.",
+  {
+    id: z.string().describe("Element id, must be unique").min(3),
+    // style: z.object({}).describe("CSS element styles to apply, must be a JSON").default({}),
+    style: z.string().describe("CSS element styles to apply, must be a JSON string"),
+  },
+  async ({ id, style }) => {
+    try {
+      const body = { style: JSON.parse(style) };
+      const { data: canvas } = await fetch.post(UPDATE_ELEMENT_STYLES(id), body);
+      const payload = JSON.stringify(canvas);
+
+      return {
+        content: [
+          { type: "text", text: "Elemento updated successfully" },
+          {
+            type: "resource",
+            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
+          },
+        ],
+      };
+    } catch (err) {
+      console.error(err);
+      return {
+        isError: true,
+        content: [{ type: "text", text: err.message }],
+      };
+    }
+  },
+);
+
+server.tool(
   "remove-element",
   "Removes an element from the current canvas, identified by its ID.",
   {
@@ -242,7 +243,15 @@ server.tool(
   },
 );
 
-server.prompt("Agrega un nueve elemento", "Agrega un nueve elemento en el canvas", () => ({
+server.prompt("Obtener el estado del canvas",()=> {
+  messages: [
+    {
+      role: "user",
+      content: "Obtener el estado actual del canvas",
+    },
+  ],
+}));
+server.prompt("Agrega un nueve elemento",  () => ({
   messages: [
     {
       role: "user",
@@ -250,8 +259,16 @@ server.prompt("Agrega un nueve elemento", "Agrega un nueve elemento en el canvas
     },
   ],
 }));
+server.prompt("Add estilo a un elemento",  () => ({
+  messages: [
+    {
+      role: "user",
+      content: "Quiero que el elemento rojo gire cuando el usuario pone el mouse encima de él",
+    },
+  ],
+}));
 
-server.resource("canvas.json", "file:///canvas.json", async () => {
+server.resource("canvas.json", "file://canvas.json", async () => {
   try {
     const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
 

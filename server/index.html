@@ -133,13 +133,16 @@
       const logEl = document.getElementById("log");
 
       function log(message) {
+        const frag = document.createDocumentFragment();
         const p = document.createElement("pre");
-        const time = new Date().toLocaleTimeString();
-        p.textContent = `${time} – ${message}`;
-        logEl.appendChild(p);
-        logEl.scrollTop = logEl.scrollHeight;
+        p.textContent = `${new Date().toLocaleTimeString()} – ${message}`;
+        frag.appendChild(p);
+        logEl.appendChild(frag);
       }
 
+      const ZOOM_STEP = 0.1;
+      const MIN_ZOOM = 0.5;
+      const MAX_ZOOM = 1.5;
       function setZoom(z) {
         artboard.style.setProperty("--zoom", z);
         zoomValue.textContent = Math.round(z * 100) + "%";
@@ -147,17 +150,13 @@
         log(`Zoom applied ${Math.round(z * 100)}%`);
       }
 
-      zoomIn.addEventListener("click", () => {
-        const z = Math.min(parseFloat(range.value) + 0.1, parseFloat(range.max));
+      function changeZoom(delta) {
+        const z = Math.min(Math.max(+range.value + delta, MIN_ZOOM), MAX_ZOOM);
         setZoom(z);
-      });
-      zoomOut.addEventListener("click", () => {
-        const z = Math.max(parseFloat(range.value) - 0.1, parseFloat(range.min));
-        setZoom(z);
-      });
-      range.addEventListener("input", () => {
-        setZoom(parseFloat(range.value));
-      });
+      }
+      zoomIn.addEventListener("click", () => changeZoom(ZOOM_STEP));
+      zoomOut.addEventListener("click", () => changeZoom(-ZOOM_STEP));
+      range.addEventListener("input", () => setZoom(+range.value));
 
       function autoZoom() {
         const wrapperWidth = wrapper.clientWidth + 30;
@@ -272,10 +271,10 @@
         };
       });
 
-      evtSource.onerror = (e) => {
-        statusEl.textContent = "SSE connection closed or error.";
-        log(statusEl.textContent);
-        evtSource.close();
+      evtSource.onerror = () => {
+        log("SSE error, retrying in 5 seconds...");
+        setTimeout(() => new EventSource("/events"), backoff);
+        backoff = Math.min(backoff * 2, 30000);
       };
     </script>
   </body>

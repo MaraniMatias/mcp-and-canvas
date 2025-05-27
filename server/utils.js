@@ -54,3 +54,27 @@ export async function parseBody(req) {
     return { body: null, err };
   }
 }
+
+/**
+ * @param {Record<string, string>} styleObj
+ * @returns {{base: Record<string, string>, pseudos: Record<string, string>, keyframes: Record<string, string>}}
+ */
+export function extractStyles(styleObj) {
+  const base = {};
+  const pseudos = {};
+  const keyframes = {};
+
+  Object.entries(styleObj).forEach(([prop, value]) => {
+    if (prop.startsWith("@keyframes")) {
+      // ej. "@keyframes rotate"
+      keyframes[prop] = value;
+    } else if (prop.startsWith("&") || prop.includes(":")) {
+      // ej. "&:hover" o "#element_1:hover"
+      pseudos[prop] = value;
+    } else {
+      base[prop] = value;
+    }
+  });
+
+  return { base, pseudos, keyframes };
+}

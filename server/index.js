@@ -1,7 +1,7 @@
 import fs from "bun:fs";
 import path from "bun:path";
 import { serve } from "bun";
-import { defineEncodedData, sendResp, parseBody } from "./utils.js";
+import { defineEncodedData, sendResp, parseBody, extractStyles } from "./utils.js";
 
 const PORT = process.env.PORT || 3000;
 
@@ -192,30 +192,27 @@ serve({
       if (!/^[a-zA-Z0-9_-]+$/.test(elementId)) {
         return sendResp("Invalid element id, must be alphanumeric", 400);
       }
+      const element = canvasJson.artboard?.children.find((child) => child.id === elementId);
+      if (!element) {
+        return sendResp("Element id not found", 400);
+      }
 
       const { body, err } = await parseBody(req);
       if (err) {
         return sendResp(err, 400);
       }
 
-      const style = body.style;
+      const { base: style, pseudos, keyframes } = extractStyles(body.style);
 
-      const styleKeys = Object.keys(style);
-      if (styleKeys.length === 0 || styleKeys.some((key) => key.includes("&"))) {
-        return sendResp(new Error("Is invalid Style, don't use pseudoelements"), 400);
+      if (Object.keys(pseudos).length > 0 || Object.keys(keyframes).length > 0) {
+        return sendResp("Is invalid Style, for keyframes and pseudos set global style", 400);
       }
 
-      const data = getEncodedData("canvas-update-element-styles", {
-        id: elementId,
-        style,
-      });
+      const data = getEncodedData("canvas-update-element-styles", { id: elementId, style });
 
       for (const client of clients) {
         client.enqueue(data);
       }
-
-      const element = canvasJson.artboard?.children.find((child) => child.id === elementId);
-      if (!element) return sendResp("Element id not found", 400);
 
       Object.assign(element, { id: elementId, ...style, position: "absolute" });
 
