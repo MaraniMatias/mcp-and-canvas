@@ -268,7 +268,10 @@ server.tool(
     } catch (err) {
       return {
         isError: true,
-        content: [{ type: "text", text: err.message }],
+        content: [
+          { type: "text", text: err.message }
+          { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
+        ],
       };
     }
   },
