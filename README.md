@@ -2,7 +2,7 @@
 
 A simple example+ to create MCP Server ([modelcontextprotocol.io](https://modelcontextprotocol.io/introduction))
 
-Easy documentation: [https://github.com/microsoft/mcp-for-beginners/tree/main](https://github.com/microsoft/mcp-for-beginners/tree/main)
+[Easy documentation](https://github.com/microsoft/mcp-for-beginners/tree/main)
 
 ![screenshot](./screenshot.png)
 
