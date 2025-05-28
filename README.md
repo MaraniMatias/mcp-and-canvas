@@ -1,6 +1,8 @@
 # LLM to Canvas concept
 
-A simple examplet to create MCP Server ([modelcontextprotocol.io](https://modelcontextprotocol.io/introduction))
+A simple example+ to create MCP Server ([modelcontextprotocol.io](https://modelcontextprotocol.io/introduction))
+
+Easy documentation: [https://github.com/microsoft/mcp-for-beginners/tree/main](https://github.com/microsoft/mcp-for-beginners/tree/main)
 
 ![screenshot](./screenshot.png)
 
@@ -47,5 +49,5 @@ You can test it with [ollama](https://ollama.com/) and [mcphost](https://github.
 
 ```bash
 ollama server
-mcphost -m ollama:qwen3:1.7b
+mcphost -m ollama:qwen3:8b
 ```

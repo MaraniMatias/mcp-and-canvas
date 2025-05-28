@@ -163,7 +163,6 @@ server.tool(
     try {
       const body = { id, type, style: JSON.parse(style) };
       const { data: canvas } = await fetch.post(ADD_ELEMENT, body);
-      const payload = JSON.stringify(canvas);
 
       return {
         content: [
