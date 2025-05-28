@@ -4,7 +4,37 @@ A simple example to create MCP Server ([modelcontextprotocol.io](https://modelco
 
 [MCP for beginners](https://github.com/microsoft/mcp-for-beginners/tree/main)
 
+## This example
+
 ![screenshot](./screenshot.png)
+
+## How MCP Servers Work
+
+```mermaid
+graph TD
+    User -->|Prompt| LLM
+    LLM -->|Response| User
+    LLM -->|MCP| ServerA
+    LLM -->|MCP| ServerB
+    ServerA -->|Universal connector| ServerB
+    ServerA --> KnowledgeA
+    ServerA --> ToolsA
+    ServerB --> KnowledgeB
+    ServerB --> ToolsB
+
+    subgraph Server A
+        KnowledgeA[Knowledge]
+        ToolsA[Tools]
+    end
+
+    subgraph Server B
+        KnowledgeB[Knowledge]
+        ToolsB[Tools]
+    end
+```
+
+Bibliografía: [How MCP Servers Work](https://github.com/microsoft/mcp-for-beginners/blob/main/00-Introduction/README.md#how-mcp-servers-work)
+
 
 To install dependencies:
 
