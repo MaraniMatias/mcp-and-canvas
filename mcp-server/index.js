@@ -270,27 +270,38 @@ server.tool(
   },
 );
 
-server.prompt("Obtener el estado del canvas", () => ({
+server.prompt("Obtener estado canvas", () => ({
   messages: [
     {
       role: "user",
-      content: "Obtener el estado actual del canvas",
+      content: {
+        type: "text",
+        text: "Obtener el estado actual del canvas",
+      },
     },
   ],
 }));
-server.prompt("Agrega un nueve elemento", () => ({
+
+server.prompt("Agregar nuevo elemento", () => ({
   messages: [
     {
       role: "user",
-      content: "Agrega un nueve elemento amarillo de 120x120, con bordes redondeados, en la posición (100, 100)",
+      content: {
+        type: "text",
+        text: "Agrega un nuevo elemento amarillo de 120×120, con bordes redondeados, en la posición (100, 100)",
+      },
     },
   ],
 }));
-server.prompt("Add estilo a un elemento", () => ({
+
+server.prompt("Añadir estilo a elemento", () => ({
   messages: [
     {
       role: "user",
-      content: "Quiero que el elemento rojo gire cuando el usuario pone el mouse encima de él",
+      content: {
+        type: "text",
+        text: "Quiero que el elemento rojo gire cuando el usuario ponga el mouse encima de él",
+      },
     },
   ],
 }));
