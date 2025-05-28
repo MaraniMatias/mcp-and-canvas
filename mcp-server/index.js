@@ -1,350 +1,270 @@
-// MCP Server imports
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
-import fetch from "./fetch.js";
+import fs from "bun:fs";
+import path from "bun:path";
+import { serve } from "bun";
+import { defineEncodedData, extractStyles, parseBody, sendResp } from "./utils.js";
 
-const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000";
+const PORT = process.env.PORT || 3000;
 
-const GET_CURRENT_CANVAS = `${SERVER_URL}/canvas`;
-const UPDATE_CSS_STYLES = `${SERVER_URL}/canvas/css`;
-const UPDATE_JAVASCRIPT = `${SERVER_URL}/canvas/javascript`;
-const UPDATE_ARTBOARD_STYLES = `${SERVER_URL}/canvas/artboard/styles`;
-const UPDATE_ELEMENT_STYLES = (elementId) => `${SERVER_URL}/canvas/element/${elementId}/styles`;
-const ADD_ELEMENT = `${SERVER_URL}/canvas/add-element`;
-const REMOVE_ELEMENT = (elementId) => `${SERVER_URL}/canvas/element/${elementId}`;
-const GET_ELEMENT = (elementId) => `${SERVER_URL}/canvas/element/${elementId}`;
+const clients = new Set();
+const encoder = new TextEncoder();
+const getEncodedData = defineEncodedData(encoder);
 
-const server = new McpServer({
-  name: "mcp-x-studio",
-  version: "1.0.0",
-});
+const canvasJson = {
+  css: "",
+  javascript: "",
+  artboard: {
+    id: "artboard_1",
+    type: "div",
+    width: "800px",
+    height: "600px",
+    background: "#ffffff",
+    children: [
+      {
+        type: "div",
+        id: "shape_1",
+        top: "50px",
+        left: "50px",
+        width: "100px",
+        height: "100px",
+        border: "1px solid #000",
+        background: "#ff0000",
+      },
+    ],
+  },
+};
 
-server.tool(
-  "get-current-canvas",
-  "Retrieves the entire current canvas and returns its contents in JSON format.",
-  async () => {
-    try {
-      const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
-      const payload = JSON.stringify(canvas);
+serve({
+  port: PORT,
+  async fetch(req) {
+    const url = new URL(req.url);
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] Incoming request: ${req.method} ${url.pathname}`);
 
-      return {
-        content: [
-          { type: "text", text: payload },
-          {
-            type: "resource",
-            resource: {
-              uri: "file://canvas.json",
-              mimeType: "application/json",
-              text: payload,
-            },
-          },
-        ],
-      };
-    } catch (err) {
-      return {
-        isError: true,
-        content: [{ type: "text", text: err.message }],
-      };
+    if (url.pathname === "/" || url.pathname === "/index.html") {
+      try {
+        const htmlPath = path.resolve(import.meta.dir, "index.html");
+        const html = await fs.promises.readFile(htmlPath, "utf8");
+        return sendResp(html, 200, {
+          "Content-Type": "text/html; charset=utf-8",
+        });
+      } catch (err) {
+        return sendResp("Error al cargar el HTML", 500);
+      }
     }
-  },
-);
 
-server.tool(
-  "update-css-styles",
-  "Replaces the web application’s CSS styles with the provided styles, removing any previous ones.",
-  {
-    css: z.string().describe("CSS styles to apply on the application web").default("* { border: 1px solid red; }"),
-  },
-  async ({ css }) => {
-    try {
-      const body = { css };
-      const { data: canvas } = await fetch.post(UPDATE_CSS_STYLES, body);
-      const payload = JSON.stringify(canvas);
+    if (url.pathname === "/events" && req.method === "GET") {
+      let controllerRef;
+      let intervalId;
 
-      return {
-        content: [
-          { type: "text", text: "Updated CSS styles successfully" },
-          {
-            type: "resource",
-            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
-          },
-        ],
-      };
-    } catch (err) {
-      return {
-        isError: true,
-        content: [
-          { type: "text", text: err.message },
-          { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
-        ],
-      };
-    }
-  },
-);
+      const stream = new ReadableStream({
+        start(controller) {
+          controllerRef = controller;
+          clients.add(controller);
+          console.log(`[${timestamp}] Client added. Total clients: ${clients.size}`);
 
-server.tool(
-  "update-javascript",
-  "Replaces the web application’s JavaScript code with the provided script, removing any previous scripts.",
-  {
-    javascript: z
-      .string()
-      .describe("Javascript to apply on the application web")
-      .default("console.log('Hello World!');"),
-  },
-  async ({ javascript }) => {
-    try {
-      const body = { javascript };
-      const { data: canvas } = await fetch.post(UPDATE_JAVASCRIPT, body);
-      const payload = JSON.stringify(canvas);
+          controller.enqueue(encoder.encode(": conectado\n\n"));
 
-      return {
-        content: [
-          { type: "text", text: "Updated CSS styles successfully" },
-          {
-            type: "resource",
-            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
-          },
-        ],
-      };
-    } catch (err) {
-      return {
-        isError: true,
-        content: [
-          { type: "text", text: err.message },
-          { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
-        ],
-      };
-    }
-  },
-);
+          const data = getEncodedData("reload", canvasJson);
+          controller.enqueue(data);
 
-server.tool(
-  "update-artboard-styles",
-  "Updates the artboard’s CSS styles by completely replacing the previous styles.",
-  {
-    // style: z.object({}).describe("CSS artboard styles to apply as JSON"),
-    style: z.string().describe("CSS artboard styles to apply as JSON string"),
-  },
-  async ({ style }) => {
-    try {
-      const body = { style: JSON.parse(style) };
-      const { data: canvas } = await fetch.post(UPDATE_ARTBOARD_STYLES, body);
-      const payload = JSON.stringify(canvas);
-
-      return {
-        content: [
-          { type: "text", text: "Updated artboard styles successfully" },
-          {
-            type: "resource",
-            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
-          },
-        ],
-      };
-    } catch (err) {
-      return {
-        isError: true,
-        content: [
-          { type: "text", text: err.message },
-          { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
-        ],
-      };
-    }
-  },
-);
-
-server.tool(
-  "add-new-element",
-  "Adds a new element to the canvas. If a parent element is specified, it will be inserted as its child; otherwise, it will be added to the artboard.",
-  {
-    id: z
-      .string()
-      .describe("Element id, must be unique")
-      .min(3)
-      .regex(/^[a-zA-Z0-9_-]+$/, "El ID del elemento debe contener solo letras, números, guiones bajos y guiones"),
-    type: z.enum(["div", "span", "p", "img"]).optional().default("div"),
-    // style: z.object({}).describe("CSS element styles to apply, must be a JSON").default({}),
-    style: z
-      .string()
-      .describe("CSS element styles to apply, must be a JSON")
-      .default(
-        '{"top": 0, "left": 0, "width": "100px", "height": "100px","border":"1px solid black","background":"white"}',
-      ),
-  },
-  async ({ id, type, style }) => {
-    try {
-      const body = { id, type, style: JSON.parse(style) };
-      const { data: canvas } = await fetch.post(ADD_ELEMENT, body);
-      const payload = JSON.stringify(canvas);
-
-      return {
-        content: [
-          { type: "text", text: "Elemento agregado exitosamente" },
-          {
-            type: "resource",
-            resource: { uri: "file://canvas", mimeType: "application/json", text: payload },
-          },
-        ],
-      };
-    } catch (err) {
-      return {
-        isError: true,
-        content: [
-          { type: "text", text: err.message },
-          { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
-        ],
-      };
-    }
-  },
-);
-
-server.tool(
-  "update-element-styles",
-  "Modifies the CSS styles of a specific element (by its ID), replacing its previous styles.",
-  {
-    id: z.string().describe("Element id, must be unique").min(3),
-    // style: z.object({}).describe("CSS element styles to apply, must be a JSON").default({}),
-    style: z.string().describe("CSS element styles to apply, must be a JSON string"),
-  },
-  async ({ id, style }) => {
-    try {
-      const body = { style: JSON.parse(style) };
-      const { data: canvas } = await fetch.post(UPDATE_ELEMENT_STYLES(id), body);
-      const payload = JSON.stringify(canvas);
-
-      return {
-        content: [
-          { type: "text", text: "Elemento updated successfully" },
-          {
-            type: "resource",
-            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
-          },
-        ],
-      };
-    } catch (err) {
-      return {
-        isError: true,
-        content: [
-          { type: "text", text: err.message },
-          { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
-        ],
-      };
-    }
-  },
-);
-
-server.tool(
-  "remove-element",
-  "Removes an element from the current canvas, identified by its ID.",
-  {
-    id: z.string().describe("Element id, must be unique").min(3),
-  },
-  async ({ id }) => {
-    try {
-      const { data: canvas } = await fetch.delete(REMOVE_ELEMENT(id));
-      const payload = JSON.stringify(canvas);
-
-      return {
-        content: [
-          { type: "text", text: "Elemento eliminado exitosamente" },
-          {
-            type: "resource",
-            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
-          },
-        ],
-      };
-    } catch (err) {
-      return {
-        isError: true,
-        content: [
-          { type: "text", text: err.message },
-          { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
-        ],
-      };
-    }
-  },
-);
-
-server.tool(
-  "check_if_element_exists_on_canvas",
-  "Check si el elemento existe en el canvas",
-  {
-    id: z
-      .string()
-      .describe("Element id, must be unique")
-      .min(3)
-      .regex(/^[a-zA-Z0-9_-]+$/, "El ID del elemento debe contener solo letras, números, guiones bajos y guiones"),
-  },
-  async ({ id }) => {
-    try {
-      const { data: element } = await fetch.get(GET_ELEMENT(id));
-
-      return {
-        content: [{ type: "text", text: "Elemento encontrado en el canvas. \n" + JSON.stringify(element, null, 2) }],
-      };
-    } catch (err) {
-      return {
-        isError: true,
-        content: [
-          { type: "text", text: err.message },
-          { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
-        ],
-      };
-    }
-  },
-);
-
-server.prompt("Obtener el estado del canvas", () => ({
-  messages: [
-    {
-      role: "user",
-      content: "Obtener el estado actual del canvas",
-    },
-  ],
-}));
-server.prompt("Agrega un nueve elemento", () => ({
-  messages: [
-    {
-      role: "user",
-      content: "Agrega un nueve elemento amarillo de 120x120, con bordes redondeados, en la posición (100, 100)",
-    },
-  ],
-}));
-server.prompt("Add estilo a un elemento", () => ({
-  messages: [
-    {
-      role: "user",
-      content: "Quiero que el elemento rojo gire cuando el usuario pone el mouse encima de él",
-    },
-  ],
-}));
-
-server.resource("canvas.json", "file://canvas.json", async () => {
-  try {
-    const { data: canvas } = await fetch.get(GET_CURRENT_CANVAS);
-
-    return {
-      contents: [
-        {
-          uri: "file://canvas.json",
-          mimeType: "application/json",
-          text: JSON.stringify(canvas),
+          // keep the connection
+          intervalId = setInterval(() => {
+            controller.enqueue(encoder.encode(": heartbeat\n\n"));
+          }, 2000);
         },
-      ],
-    };
-  } catch (err) {
-    return {
-      isError: true,
-      content: [
-        { type: "text", text: err.message },
-        { type: "text", text: "puedes pedir el estado del canvas actual, o leer el resource canvas.json" },
-      ],
-    };
-  }
+        cancel() {
+          clearInterval(intervalId);
+          clients.delete(controllerRef);
+          console.log(`[${new Date().toISOString()}] Client disconnected. Total clients: ${clients.size}`);
+        },
+      });
+
+      return sendResp(stream, 200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      });
+    }
+
+    if (url.pathname === "/message" && req.method === "POST") {
+      const { body, err } = await parseBody(req);
+      if (err) {
+        return sendResp(err, 400);
+      }
+
+      const ssePayload = {
+        timestamp: new Date().toISOString(),
+        type: "message",
+        payload: body.payload,
+      };
+      const data = encoder.encode(`data: ${ssePayload}\n\n`);
+
+      // Send message to all clients
+      for (const client of clients) {
+        client.enqueue(data);
+      }
+
+      return sendResp("Mensaje enviado");
+    }
+
+    if (url.pathname === "/canvas" && req.method === "GET") {
+      return sendResp(canvasJson);
+    }
+
+    if (url.pathname === "/canvas/css" && req.method === "POST") {
+      const { body, err } = await parseBody(req);
+      if (err) {
+        return sendResp(err, 400);
+      }
+
+      const data = getEncodedData("canvas-update-css", body.css);
+      for (const client of clients) {
+        client.enqueue(data);
+      }
+
+      canvasJson.css = body.css;
+      return sendResp(canvasJson);
+    }
+
+    if (url.pathname === "/canvas/javascript" && req.method === "POST") {
+      const { body, err } = await parseBody(req);
+      if (err) {
+        return sendResp(err, 400);
+      }
+
+      const data = getEncodedData("canvas-update-javascript", body.javascript);
+      for (const client of clients) {
+        client.enqueue(data);
+      }
+
+      canvasJson.javascript = body.javascript;
+      return sendResp(canvasJson);
+    }
+
+    if (url.pathname === "/canvas/artboard/styles" && req.method === "POST") {
+      const { body, err } = await parseBody(req);
+      if (err) {
+        return sendResp(err, 400);
+      }
+
+      const { base: style, pseudos, keyframes } = extractStyles(body.style);
+
+      if (Object.keys(pseudos).length > 0 || Object.keys(keyframes).length > 0) {
+        return sendResp("Is invalid Style, for keyframes and pseudos set global style", 400);
+      }
+
+      const data = getEncodedData("canvas-update-artboard-styles", style);
+      for (const client of clients) {
+        client.enqueue(data);
+      }
+
+      canvasJson.artboard = {
+        ...canvasJson.artboard,
+        ...style,
+        top: 0,
+        left: 0,
+        position: "relative",
+      };
+      return sendResp(canvasJson);
+    }
+
+    if (url.pathname === "/canvas/add-element" && req.method === "POST") {
+      const { body, err } = await parseBody(req);
+      if (err) {
+        return sendResp(err, 400);
+      }
+
+      const { id, style } = body;
+
+      const exitAndElementWithId = canvasJson.artboard.children.find((child) => child.id === id);
+      if (exitAndElementWithId) {
+        return sendResp("Element with id already exists", 400);
+      }
+
+      const isStyleValid = ["width", "height", "left", "top"].every((key) => key in style);
+      if (!isStyleValid) {
+        return sendResp("Is invalid Style, messing width, height, left, top", 400);
+      }
+
+      const data = getEncodedData("canvas-add-element", { ...body, style });
+      for (const client of clients) {
+        client.enqueue(data);
+      }
+
+      canvasJson.artboard.children.push({ ...body, position: "relative" });
+      return sendResp(canvasJson);
+    }
+
+    const match = url.pathname.match(/^\/canvas\/element\/([^/]+)\/styles$/);
+    if (match && req.method === "POST") {
+      const elementId = match[1];
+      // Is a valid element id
+      if (!/^[a-zA-Z0-9_-]+$/.test(elementId)) {
+        return sendResp("Invalid element id, must be alphanumeric", 400);
+      }
+      const element = canvasJson.artboard?.children.find((child) => child.id === elementId);
+      if (!element) {
+        return sendResp("Element id not found", 400);
+      }
+
+      const { body, err } = await parseBody(req);
+      if (err) {
+        return sendResp(err, 400);
+      }
+
+      const { base: style, pseudos, keyframes } = extractStyles(body.style);
+
+      if (Object.keys(pseudos).length > 0 || Object.keys(keyframes).length > 0) {
+        return sendResp("Is invalid Style, for keyframes and pseudos set global style", 400);
+      }
+
+      const data = getEncodedData("canvas-update-element-styles", {
+        id: elementId,
+        style,
+      });
+
+      for (const client of clients) {
+        client.enqueue(data);
+      }
+
+      Object.assign(element, { id: elementId, ...style, position: "absolute" });
+
+      return sendResp(canvasJson);
+    }
+
+    const matchDelete = url.pathname.match(/^\/canvas\/element\/([^/]+)$/);
+    if (matchDelete && req.method === "DELETE") {
+      const elementId = matchDelete[1];
+
+      const data = getEncodedData("canvas-delete-element", { id: elementId });
+      for (const client of clients) {
+        client.enqueue(data);
+      }
+
+      const index = canvasJson.artboard.children.findIndex((child) => child.id === elementId);
+      canvasJson.artboard.children.splice(index, 1);
+
+      return sendResp(canvasJson);
+    }
+
+    const matchGet = url.pathname.match(/^\/canvas\/element\/([^/]+)$/);
+    if (matchGet && req.method === "GET") {
+      const elementId = matchGet[1];
+
+      if (!/^[a-zA-Z0-9_-]+$/.test(elementId)) {
+        return sendResp("Invalid element id, must be alphanumeric", 400);
+      }
+
+      const element = canvasJson.artboard.children.find((child) => child.id === elementId);
+      if (!element) {
+        return sendResp("Element not found", 404);
+      }
+
+      return sendResp(element);
+    }
+
+    return sendResp("Not Found", 404);
+  },
 });
 
-// Connect the server using stdio transport
-const transport = new StdioServerTransport();
-server.connect(transport).catch(console.error);
-
-console.log("Weather MCP Server started");
+console.log(`Server running on http://localhost:${PORT}`);
