@@ -269,13 +269,14 @@
             log(`Message received: ${data.payload}`);
           }
         };
-      });
 
       evtSource.onerror = () => {
         log("SSE error, retrying in 5 seconds...");
         setTimeout(() => new EventSource("/events"), backoff);
         backoff = Math.min(backoff * 2, 30000);
       };
+});
+
     </script>
   </body>
 </html>
