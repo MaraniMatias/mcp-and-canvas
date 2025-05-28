@@ -60,15 +60,11 @@ server.tool(
     try {
       const body = { css };
       const { data: canvas } = await fetch.post(UPDATE_CSS_STYLES, body);
-      const payload = JSON.stringify(canvas);
 
       return {
         content: [
           { type: "text", text: "Updated CSS styles successfully" },
-          {
-            type: "resource",
-            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
-          },
+          { type: "text", text: "Canvas actualizado " + JSON.stringify(canvas, null, 2) },
         ],
       };
     } catch (err) {
@@ -96,15 +92,11 @@ server.tool(
     try {
       const body = { javascript };
       const { data: canvas } = await fetch.post(UPDATE_JAVASCRIPT, body);
-      const payload = JSON.stringify(canvas);
 
       return {
         content: [
           { type: "text", text: "Updated CSS styles successfully" },
-          {
-            type: "resource",
-            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
-          },
+          { type: "text", text: "Canvas actualizado " + JSON.stringify(canvas, null, 2) },
         ],
       };
     } catch (err) {
@@ -130,15 +122,11 @@ server.tool(
     try {
       const body = { style: JSON.parse(style) };
       const { data: canvas } = await fetch.post(UPDATE_ARTBOARD_STYLES, body);
-      const payload = JSON.stringify(canvas);
 
       return {
         content: [
           { type: "text", text: "Updated artboard styles successfully" },
-          {
-            type: "resource",
-            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
-          },
+          { type: "text", text: "Canvas actualizado " + JSON.stringify(canvas, null, 2) },
         ],
       };
     } catch (err) {
@@ -180,10 +168,7 @@ server.tool(
       return {
         content: [
           { type: "text", text: "Elemento agregado exitosamente" },
-          {
-            type: "resource",
-            resource: { uri: "file://canvas", mimeType: "application/json", text: payload },
-          },
+          { type: "text", text: "Canvas actualizado " + JSON.stringify(canvas, null, 2) },
         ],
       };
     } catch (err) {
@@ -210,15 +195,11 @@ server.tool(
     try {
       const body = { style: JSON.parse(style) };
       const { data: canvas } = await fetch.post(UPDATE_ELEMENT_STYLES(id), body);
-      const payload = JSON.stringify(canvas);
 
       return {
         content: [
           { type: "text", text: "Elemento updated successfully" },
-          {
-            type: "resource",
-            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
-          },
+          { type: "text", text: "Canvas actualizado " + JSON.stringify(canvas, null, 2) },
         ],
       };
     } catch (err) {
@@ -242,15 +223,11 @@ server.tool(
   async ({ id }) => {
     try {
       const { data: canvas } = await fetch.delete(REMOVE_ELEMENT(id));
-      const payload = JSON.stringify(canvas);
 
       return {
         content: [
           { type: "text", text: "Elemento eliminado exitosamente" },
-          {
-            type: "resource",
-            resource: { uri: "file://canvas.json", mimeType: "application/json", text: payload },
-          },
+          { type: "text", text: "Canvas actualizado " + JSON.stringify(canvas, null, 2) },
         ],
       };
     } catch (err) {
