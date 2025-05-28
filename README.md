@@ -12,13 +12,13 @@ A simple example to create MCP Server ([modelcontextprotocol.io](https://modelco
 
 ```mermaid
 graph TD
-    User -->|Prompt| LLM
+    User -->|Prompt| LLM["LLM (App Host)"]
     LLM -->|Response| User
-    LLM -->|MCP| ServerA
-    ServerA --> KnowledgeA
-    ServerA --> ToolsA
+    LLM -->|MCP| Server
+    Server --> KnowledgeA
+    Server --> ToolsA
 
-    subgraph Server A
+    subgraph Server A["Server"]
         KnowledgeA[Knowledge]
         ToolsA[Tools]
     end
