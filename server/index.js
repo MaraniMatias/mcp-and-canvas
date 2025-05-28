@@ -174,9 +174,14 @@ serve({
         return sendResp(err, 400);
       }
 
-      const style = body.style;
-      const isStyleValid = ["width", "height", "left", "top"].every((key) => key in style);
+      const { id, style } = body;
 
+      const exitAndElementWithId = canvasJson.artboard.children.find((child) => child.id === id);
+      if (exitAndElementWithId) {
+        return sendResp("Element with id already exists", 400);
+      }
+
+      const isStyleValid = ["width", "height", "left", "top"].every((key) => key in style);
       if (!isStyleValid) {
         return sendResp("Is invalid Style, messing width, height, left, top", 400);
       }
