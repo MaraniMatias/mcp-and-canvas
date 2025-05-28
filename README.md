@@ -15,21 +15,12 @@ graph TD
     User -->|Prompt| LLM
     LLM -->|Response| User
     LLM -->|MCP| ServerA
-    LLM -->|MCP| ServerB
-    ServerA -->|Universal connector| ServerB
     ServerA --> KnowledgeA
     ServerA --> ToolsA
-    ServerB --> KnowledgeB
-    ServerB --> ToolsB
 
     subgraph Server A
         KnowledgeA[Knowledge]
         ToolsA[Tools]
-    end
-
-    subgraph Server B
-        KnowledgeB[Knowledge]
-        ToolsB[Tools]
     end
 ```
 
