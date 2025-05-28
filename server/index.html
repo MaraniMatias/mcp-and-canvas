@@ -106,6 +106,7 @@
         max-height: 600px;
       }
     </style>
+    <style id="dynamic-style"></style>
   </head>
   <body>
     <div class="canvas-wrapper">
@@ -123,12 +124,15 @@
       </div>
       <div class="log" id="log"></div>
     </div>
+    <script id="dynamic-script"></script>
 
     <script>
       const artboard = document.getElementById("artboard_1");
       const wrapper = document.querySelector(".canvas-wrapper");
+
       const overlay = document.querySelector(".overlay");
       const range = document.getElementById("zoom-range");
+
       const zoomIn = document.getElementById("zoom-in");
       const zoomOut = document.getElementById("zoom-out");
       const zoomValue = document.getElementById("zoom-value");
@@ -180,9 +184,12 @@
     </script>
 
     <script>
+      let backoff = 5000;
       document.addEventListener("DOMContentLoaded", () => {
         const evtSource = new EventSource("/events");
         const statusEl = document.getElementById("status");
+        const dynamicStyle = document.getElementById("dynamic-style");
+        const dynamicScript = document.getElementById("dynamic-script");
 
         evtSource.onopen = () => {
           statusEl.textContent = "SSE connected.";
@@ -198,15 +205,13 @@
             const canvas = data.payload;
             const css = canvas.css;
             if (css) {
-              const style = document.createElement("style");
-              style.textContent = css;
-              document.head.appendChild(style);
+              dynamicStyle.textContent = css;
+              log("CSS dynamic style");
             }
             const javaScript = canvas.javascript;
             if (javaScript) {
-              const script = document.createElement("script");
-              script.textContent = javaScript;
-              document.body.appendChild(script);
+              dynamicScript.textContent = javascript;
+              log("JS dynamic javaScript");
             }
 
             const { children, ...artboard } = canvas.artboard;
@@ -230,14 +235,10 @@
             autoZoom();
           } else if (data.type === "canvas-update-css") {
             log(`Reloading CSS... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
-            const style = document.createElement("style");
-            style.textContent = `.canvas-wrapper { ${data.payload} }`;
-            document.head.appendChild(style);
+            dynamicStyle.textContent = `.canvas-wrapper { ${data.payload} }`;
           } else if (data.type === "canvas-update-javascript") {
             log(`Reloading javascript... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
-            const script = document.createElement("script");
-            script.textContent = data.payload;
-            document.body.appendChild(script);
+            dynamicScript.textContent = data.payload;
           } else if (data.type === "canvas-update-artboard-styles") {
             log(`Reloading artboard styles... (${data.type})\n\n${JSON.stringify(data.payload, null, 2)}\n\n`);
             const styles = data.payload;
