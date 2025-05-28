@@ -1,8 +1,8 @@
 # LLM to Canvas concept
 
-A simple example+ to create MCP Server ([modelcontextprotocol.io](https://modelcontextprotocol.io/introduction))
+A simple example to create MCP Server ([modelcontextprotocol.io](https://modelcontextprotocol.io/introduction)) 
 
-[Easy documentation](https://github.com/microsoft/mcp-for-beginners/tree/main)
+[MCP for beginners](https://github.com/microsoft/mcp-for-beginners/tree/main)
 
 ![screenshot](./screenshot.png)
 
