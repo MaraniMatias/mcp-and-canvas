@@ -57,9 +57,9 @@ You can test it with [ollama](https://ollama.com/) and [mcphost](https://github.
 // nvim ~/.mcp.json
 {
   "mcpServers": {
-    "mcp-x-studio": {
+    "mcp-and-canvas": {
       "command": "node",
-      "args": ["../../mcp-x-studio/server/index.js"],
+      "args": ["../../mcp-and-canvas/server/index.js"],
       "env": {
         "SERVER_URL": "http://localhost:3000",
       },
